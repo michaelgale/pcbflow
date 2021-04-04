@@ -464,12 +464,12 @@ class Draw(Turtle):
 
     def text(self, s, side="top"):
         (x, y) = self.xy
-        self.board.layers[self._silklayer(side)].add(hershey.ctext(x, y, s))
+        self.board.layers[self._silklayer(side)].add(hershey.ctext(x, y, s, side=side))
         return self
 
     def ltext(self, s, side="top"):
         (x, y) = self.xy
-        self.board.layers[self._silklayer(side)].add(hershey.ltext(x, y, s))
+        self.board.layers[self._silklayer(side)].add(hershey.ltext(x, y, s, side=side))
 
     def through(self):
         self.wire()
@@ -1007,8 +1007,11 @@ class Board:
         pl.append(part)
         return part.family + str(len(pl))
 
-    def logo(self, cx, cy, im, scale=None):
+    def bitmap(self, fn, cx, cy, side="top", scale=None):
+        im = Image.open(fn)
         im = im.convert("L")
+        if side.lower() == "bottom":
+            im = im.transpose(Image.FLIP_LEFT_RIGHT)
         if scale is not None:
             w = int(im.size[0] * scale)
             h = int(im.size[1] * scale)
@@ -1038,7 +1041,10 @@ class Board:
         g = sa.translate(so.unary_union(g), cx - 0.5 * w * s, cy - 0.5 * h * s).buffer(
             0.001
         )
-        self.layers["GTO"].add(g)
+        if side.lower() == "top":
+            self.layers["GTO"].add(g)
+        else:
+            self.layers["GBO"].add(g)
 
     def check(self):
         def npoly(g):

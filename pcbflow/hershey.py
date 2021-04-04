@@ -74,27 +74,33 @@ def chars(s):
 
 sf = 1 / 32
 
-def text(x, y, s, scale = 1.0):
+def text(x, y, s, scale = 1.0, side="top"):
     o = chars(s)
     o = sa.scale(o, sf * scale, -sf * scale, origin = (0,0))
     cx = o.centroid.x
     cy = o.centroid.y
     (cx, cy) = (0, 0)
     o = sa.translate(o, -cx + x, -cy + y)
+    if side == "bottom":
+        o = sa.scale(o, -1.0, 1.0)
     return o.buffer(scale * 6 * .0254 / 2)
 
-def ctext(x, y, s):
+def ctext(x, y, s, side="top"):
     o = chars(s)
     o = sa.scale(o, sf, -sf, origin = (0,0))
     cx = o.envelope.centroid.x
     cy = o.envelope.centroid.y
     o = sa.translate(o, -cx + x, -cy + y)
+    if side == "bottom":
+        o = sa.scale(o, -1.0, 1.0)
     return o.buffer(6 * .0254 / 2)
 
-def ltext(x, y, s):
+def ltext(x, y, s, side="top"):
     o = chars(s)
     o = sa.scale(o, sf, -sf, origin = (0,0))
     o = sa.translate(o, x, y)
+    if side == "bottom":
+        o = sa.scale(o, -1.0, 1.0)
     return o.buffer(6 * .0254 / 2)
 
 if __name__ == '__main__':

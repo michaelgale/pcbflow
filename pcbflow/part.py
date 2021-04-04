@@ -49,11 +49,11 @@ class Part:
 
     def text(self, dc, s):
         (x, y) = dc.xy
-        dc.board.layers[self._silklayer()].add(hershey.ctext(x, y, s))
+        dc.board.layers[self._silklayer()].add(hershey.ctext(x, y, s, side=self.side))
 
     def label(self, dc):
         (x, y) = dc.xy
-        dc.board.layers[self._silklayer()].add(hershey.ctext(x, y, self.id))
+        dc.board.layers[self._silklayer()].add(hershey.ctext(x, y, self.id, side=self.side))
 
     def minilabel(self, dc, s):
         dc.push()
@@ -61,13 +61,13 @@ class Part:
         dc.silko(side=self.side)
         dc.w("r 180 f 1.5")
         (x, y) = dc.xy
-        dc.board.layers[self._silklayer()].add(hershey.ctext(x, y, s))
+        dc.board.layers[self._silklayer()].add(hershey.ctext(x, y, s, side=self.side))
         dc.pop()
         dc.newpath()
 
     def notate(self, dc, s):
         (x, y) = dc.xy
-        dc.board.layers[self._silklayer()].add(hershey.text(x, y, s, scale=0.1))
+        dc.board.layers[self._silklayer()].add(hershey.text(x, y, s, scale=0.1, side=self.side))
 
     def chamfered(self, dc, w, h, drawid=True, idoffset=(0, 0)):
         # Outline in top silk, chamfer indicates top-left
@@ -94,7 +94,7 @@ class Part:
         dc.goxy(*idoffset)
         (x, y) = dc.xy
         if drawid:
-            dc.board.layers[self._silklayer()].add(hershey.ctext(x, y, self.id))
+            dc.board.layers[self._silklayer()].add(hershey.ctext(x, y, self.id, side=self.side))
         dc.pop()
 
     def pad(self, dc, padsize=None):
