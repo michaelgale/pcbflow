@@ -11,6 +11,7 @@ This implementation is an experimental variation of CuFlow.  It attempts to modu
 - allow customization of track widths, drill/hole types
 - contain design rules in a dictionary rather than the Board class
 - improve layout metrics
+- enhanced Gerber files with FileFunction assignements
 - plus more
 
 This implementation is very alpha and not documented.

@@ -1,3 +1,9 @@
+#! /usr/bin/env python3
+#
+# SVG file exporter
+#
+
+
 import shapely.geometry as sg
 import shapely.affinity as sa
 import shapely.ops as so

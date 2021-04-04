@@ -1,3 +1,8 @@
+#! /usr/bin/env python3
+#
+# PCB part class
+#
+
 from collections import defaultdict
 import re
 import math
@@ -10,6 +15,7 @@ import shapely.ops as so
 import math
 
 from pcbflow import *
+
 
 class Part:
     mfr = ""
@@ -95,7 +101,7 @@ class Part:
         for n in self._layers():
             if n.endswith("S"):
                 if padsize is not None:
-                    dc.rect(maskratio*padsize[0], maskratio*padsize[1])
+                    dc.rect(maskratio * padsize[0], maskratio * padsize[1])
                 gs = dc.poly()
                 dc.board.layers[n].add(gs)
             else:
@@ -106,7 +112,6 @@ class Part:
         p = dc.copy()
         p.part = self.id
         self.pads.append(p)
-
 
     def rpad(self, dc, w, h):
         dc.right(90)
@@ -196,6 +201,7 @@ class C0603(Discrete2):
         self.label(dc)
         dc.pop()
 
+
 class C1206(Discrete2):
     family = "C"
     footprint = "1206"
@@ -220,20 +226,26 @@ class C1206(Discrete2):
         self.label(dc)
         dc.pop()
 
+
 class R0402(C0402):
     family = "R"
+
 
 class R0603(C0603):
     family = "R"
 
+
 class R1206(C1206):
     family = "R"
+
 
 class L0603(C0603):
     family = "L"
 
+
 class L1206(C1206):
     family = "L"
+
 
 # Taken from:
 # https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/ltc-legacy-qfn/QFN_64_05-08-1705.pdf

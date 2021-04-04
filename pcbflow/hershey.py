@@ -1,3 +1,9 @@
+#! /usr/bin/env python3
+#
+# Hershey typeface rendering
+# 
+
+
 import shapely.geometry as sg
 import shapely.affinity as sa
 import shapely.ops as so

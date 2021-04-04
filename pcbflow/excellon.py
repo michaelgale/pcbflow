@@ -1,3 +1,8 @@
+#! /usr/bin/env python3
+#
+# Excellon drill file exporter
+#
+
 preamble = """\
 M48
 FMAT,2

@@ -1,11 +1,14 @@
 import math
-import shapely.geometry as sg
 
 from pcbflow import *
 
 
 if __name__ == "__main__":
     brd = Board((40, 30))
+    brd.DC((10, 10)).via()
+    brd.DC((20, 10)).via()
+    brd.DC((10, 20)).via()
+    brd.DC((20, 20)).via()
     brd.outline()
     brd.fill_any("GTL", "GND")
     brd.fill_any("GBL", "GND")

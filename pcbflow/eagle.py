@@ -1,3 +1,8 @@
+#! /usr/bin/env python3
+#
+# Eagle library part importer
+#
+
 import sys
 import math
 from collections import defaultdict

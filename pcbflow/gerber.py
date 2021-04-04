@@ -1,3 +1,8 @@
+#! /usr/bin/env python3
+#
+# Gerber file exporter
+#
+
 preamble = """\
 G04 Excamera Labs Gerber RS-274X export*
 G75*

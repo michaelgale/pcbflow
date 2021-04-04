@@ -1,4 +1,12 @@
+#! /usr/bin/env python3
+#
+# Main pcbflow classes:
+#   Layer, OutlineLayer, Turtle, Draw, River, Board
+#
+
+
 from collections import defaultdict
+import os
 import re
 import math
 import csv
@@ -59,6 +67,7 @@ class Layer:
         surface = self.preview()
         g = Gerber(f, self.desc)
         g.file_function(self.function)
+
         def renderpoly(g, po):
             if type(po) == sg.MultiPolygon:
                 [renderpoly(g, p) for p in po]
@@ -178,7 +187,7 @@ class Draw(Turtle):
         self.part = None
         self.name = None
         self.newpath()
-        self.width = board.trace
+        self.width = board.drc.trace_width
         self.h = None
         self.length = 0
         self.defaults()
@@ -196,7 +205,7 @@ class Draw(Turtle):
         if side == "top":
             return "GTO"
         return "GBO"
-        
+
     def setname(self, nm):
         self.name = nm
         return self
@@ -254,16 +263,9 @@ class Draw(Turtle):
         o2 = other.copy()
         o2.forward(1)
         (x2, y2) = o2.xy
-
         self.forward(abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) - d)
 
     def seek(self, other):
-        # Return position of other in our frame as (x, y) so that
-        #     forward(y)
-        #     right(90)
-        #     forward(x)
-        # moves to the other
-
         (dx, dy) = (other.xy[0] - self.xy[0], other.xy[1] - self.xy[1])
         a = (self.dir / 360) * (2 * math.pi)
         s = math.sin(a)
@@ -381,11 +383,11 @@ class Draw(Turtle):
             self.board.layers[n].add(g, self.name)
 
     def silk(self, side="top"):
-        g = sg.LineString(self.path).buffer(self.board.silk / 2)
+        g = sg.LineString(self.path).buffer(self.board.drc.silk_width / 2)
         self.board.layers[self._silklayer(side)].add(g)
 
     def silko(self, side="top"):
-        g = sg.LinearRing(self.path).buffer(self.board.silk / 2)
+        g = sg.LinearRing(self.path).buffer(self.board.drc.silk_width / 2)
         self.board.layers[self._silklayer(side)].add(g)
 
     def outline(self):
@@ -396,12 +398,14 @@ class Draw(Turtle):
         self.board.drill(self.xy, d)
 
     def via(self, connect=None):
-        g = sg.Point(self.xy).buffer(self.board.via / 2)
+        g = sg.Point(self.xy).buffer(
+            self.board.drc.via_drill / 2 + self.board.drc.via_annular_ring
+        )
         for n in ("GTL", "GP2", "GP3", "GBL"):
             self.board.layers[n].add(g, connect)
         if connect is not None:
             self.board.layers[connect].connected.append(g)
-        self.board.drill(self.xy, self.board.via_hole)
+        self.board.drill(self.xy, self.board.drc.via_drill)
         self.newpath()
         return self
 
@@ -423,8 +427,8 @@ class Draw(Turtle):
 
     def wvia(self, l):
         b = self.board
-        self.forward(b.via_space + b.via / 2)
-        self.wire(width=b.via_track_width, layer=l)
+        self.forward(b.drc.via_space + b.drc.via_drill)
+        self.wire(width=b.drc.via_track_width, layer=l)
         self.via(l)
 
     def fan(self, l, dst):
@@ -576,7 +580,7 @@ class River(Turtle):
         return self
 
     def spread(self, d):
-        c = self.board.trace + self.board.space
+        c = self.board.drc.trace_width + self.board.drc.trace_space
         n = len(self.tt) - 1
         for i, t in enumerate(self.tt[::-1]):
             i_ = n - i
@@ -630,7 +634,7 @@ class River(Turtle):
 
     def meet0(self, other):
         d = self.tt[0].distance(other.tt[0])
-        c = self.board.trace + self.board.space
+        c = self.board.drc.trace_width + self.board.drc.trace_space
         r = c * (len(self.tt) - 1)
         l = math.sqrt(d ** 2 - r ** 2)
         dir_d = self.tt[0].direction(other.tt[0])
@@ -665,10 +669,9 @@ class River(Turtle):
         return self
 
     def through(self):
-        # print(self.tt[0].distance(self.tt[-1]))
-        h = self.board.via + self.board.via_space
+        h = self.board.drc.via_drill + self.board.drc.via_space
         th = math.acos(self.c / h)
-        d = self.board.via / 2 + self.board.via_space
+        d = self.board.drc.via_drill / 2 + self.board.via_space
         a = h * math.sin(th)
         th_d = math.degrees(th)
         dst = {"GTL": "GBL", "GBL": "GTL"}[self.tt[0].layer]
@@ -683,17 +686,12 @@ class River(Turtle):
         return self
 
     def shuffle(self, other, mp):
-        # print(self.tt[0].distance(self.tt[-1]))
         h = self.board.via + self.board.via_space  # / math.sqrt(2)
         th = math.acos(self.c / h)
         d = self.board.via / 2 + self.board.via_space
         a = h * math.sin(th)
         th_d = math.degrees(th)
         dst = {"GTL": "GBL", "GBL": "GTL"}[self.tt[0].layer]
-
-        # print('         mp', mp)
-        # print('   original', [t.name for t in self.tt])
-        # print('      other', [t.name for t in other.tt])
         self.forward(d)
         othernames = {p.name: i for i, p in enumerate(other.tt)}
         newt = [None for _ in self.tt]
@@ -707,7 +705,6 @@ class River(Turtle):
             t.through()
             t.left(90)
         extend2(self.tt)
-        # print('       newt', [t.name for t in newt])
         self.tt = newt[::-1]
         self.forward(d)
         for i, t in enumerate(self.tt):
@@ -717,30 +714,20 @@ class River(Turtle):
 
 
 class Board:
-    def __init__(self, size, trace, space, via_hole, via, via_space, silk):
+    def __init__(self, size):
         self.size = size
-        self.trace = trace
-        self.space = space
-        self.via_hole = via_hole
-        self.via = via
-        self.via_space = via_space
-        self.via_track_width = trace
-        self.silk = silk
+        self.drc = DRC()
         self.parts = defaultdict(list)
         self.holes = defaultdict(list)
         self.npth = defaultdict(list)
         self.keepouts = []
 
-        self.c = trace + space  # track spacing, used everywhere
+        self.c = (
+            self.drc.trace_width + self.drc.trace_space
+        )  # track spacing, used everywhere
 
         self.counters = defaultdict(lambda: 0)
         self.nets = []
-
-        self.rules = {
-            "mask_holes": True,
-            "hole_mask": mil(16),
-            "hole_keepout": mil(20),
-        }
 
         layers = [
             ("GTP", "Top Paste", "Paste,Top"),
@@ -764,26 +751,34 @@ class Board:
         y1 += r
         return sg.LinearRing([(x0, y0), (x1, y0), (x1, y1), (x0, y1)])
 
+    def boundary_keepout(self):
+        x0, y0 = (0, 0)
+        x1, y1 = self.size
+        bo = sg.LinearRing([(x0, y0), (x1, y0), (x1, y1), (x0, y1)]).buffer(
+            self.drc.outline_space
+        )
+        self.keepouts.append(bo)
+
     def outline(self):
         self.layers["GML"].add(self.boundary())
+        self.boundary_keepout()
 
     def oversize(self, r):
         self.layers["GML"].add(self.boundary(r))
-        sr = self.silk / 2
+        sr = self.drc.silk_width / 2
         g = self.boundary(1.1 * sr).buffer(sr)
         self.layers["GTO"].add(g.buffer(0))
 
     def hole(self, xy, inner, outer=None, show_outline=False):
         self.npth[inner].append(xy)
-        # self.drill(xy, inner)
         if outer is not None and show_outline:
             g = sg.LinearRing(sg.Point(xy).buffer(outer / 2).exterior).buffer(
-                self.silk / 2
+                self.drc.silk_width / 2
             )
             self.layers["GTO"].add(g)
-        self.keepouts.append(sg.Point(xy).buffer(inner / 2 + self.rules["hole_keepout"]))
-        gm = sg.Point(xy).buffer(inner / 2 + self.rules["hole_mask"])
-        if self.rules["mask_holes"]:
+        self.keepouts.append(sg.Point(xy).buffer(inner / 2 + self.drc.hole_keepout))
+        gm = sg.Point(xy).buffer(inner / 2 + self.drc.hole_mask)
+        if self.drc.mask_holes:
             self.layers["GTS"].add(gm)
             self.layers["GBS"].add(gm)
 
@@ -801,16 +796,19 @@ class Board:
 
     def fill(self):
         ko = so.unary_union(self.keepouts)
-        g = sg.box(0, 0, self.size[0], self.size[1]).buffer(-0.2).difference(ko)
-        self.layers["GL2"].fill(g, "GL2", self.via_space)
-        self.layers["GL3"].fill(g, "GL3", self.via_space)
+        g = (
+            sg.box(0, 0, self.size[0], self.size[1])
+            .buffer(-self.drc.keepout_space)
+            .difference(ko)
+        )
+        self.layers["GL2"].fill(g, "GL2", self.drc.via_space)
+        self.layers["GL3"].fill(g, "GL3", self.drc.via_space)
 
     def fill_any(self, layer, include):
         ko = so.unary_union(self.keepouts)
-        g = self.body().buffer(-0.2).difference(ko)
+        g = self.body().buffer(-self.drc.keepout_space).difference(ko)
         la = self.layers[layer]
-
-        d = max(self.space, self.via_space)
+        d = max(self.drc.trace_space, self.drc.via_space)
         notouch = so.unary_union([o for (nm, o) in la.polys if nm != include])
         self.layers[layer].add(g.difference(notouch.buffer(d)), include)
 
@@ -839,23 +837,21 @@ class Board:
         substrate.add(mask)
         return substrate
 
-    def drc(self):
+    def perform_drc(self):
         mask = self.substrate().preview()
         for l in ("GTL", "GBL"):
             lg = self.layers[l].preview()
             if not mask.contains(lg):
                 print("Layer", l, "boundary error")
-                # self.layers["GTO"].add(lg.difference(mask).buffer(.1))
 
     def save(self, basename, with_povray=False):
-        # self.drc()
-        # self.check()
+        newpath = os.path.normpath("./gerbers" + os.sep + basename)
         for (id, l) in self.layers.items():
-            with open(basename + "." + id, "wt") as f:
+            with open(newpath + "." + id, "wt") as f:
                 l.save(f)
-        with open(basename + "_PTH.DRL", "wt") as f:
+        with open(newpath + "_PTH.DRL", "wt") as f:
             excellon(f, self.holes, "Plated,1,4,PTH")
-        with open(basename + "_NPTH.DRL", "wt") as f:
+        with open(newpath + "_NPTH.DRL", "wt") as f:
             excellon(f, self.npth, "NonPlated,1,4,NPTH")
 
         if with_povray:
@@ -959,7 +955,7 @@ class Board:
             bank = ibank
         bank[0].right(a)
         for i, t in enumerate(bank[1:], 1):
-            gap = (self.trace + self.space) * i
+            gap = (self.drc.trace_width + self.drc.trace_space) * i
             t.left(a)
             t.approach(gap, bank[0])
             t.right(2 * a)
@@ -973,7 +969,7 @@ class Board:
             bank = ibank
         bank[0].right(a)
         for i, t in enumerate(bank[1:], 1):
-            gap = (self.trace + self.space) * i
+            gap = (self.drc.trace_width + self.drc.trace_space) * i
             t.forward(gap)
             t.right(a)
         extend(bank[0], bank)
@@ -985,7 +981,7 @@ class Board:
         return rv
 
     def enriverPair(self, z):
-        c = self.trace + self.space
+        c = self.drc.trace_width + self.drc.trace_space
         y = 0.5 * (z[0].distance(z[1]) - c)
         h = math.sqrt(2 * (y ** 2))
 
@@ -1009,7 +1005,7 @@ class Board:
         (w, h) = im.size
         ar = im.load()
         g = []
-        s = 0.04
+        s = self.drc.bitmap_res
         ov = 1
         for y in range(h):
             (y0, y1) = (y * s, (y + ov) * s)

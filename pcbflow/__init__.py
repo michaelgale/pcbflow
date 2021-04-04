@@ -20,6 +20,7 @@ from .gerber import Gerber
 from .excellon import excellon
 from .svgout import svg_write
 from .hershey import text, ltext, ctext
+from .drc import DRC
 from .part import *
 from .eagle import LibraryPart
 from .pcbflow import *
