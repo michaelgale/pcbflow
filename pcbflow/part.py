@@ -55,13 +55,13 @@ class Part:
             )
         )
 
-    def label(self, dc):
+    def label(self, dc, angle=0):
         (x, y) = dc.xy
-        dc.board.layers[self._silklayer()].add(
-            hershey.ctext(
+        gt = hershey.ctext(
                 x, y, self.id, side=self.side, linewidth=self.board.drc.text_silk_width
             )
-        )
+        gt = sa.rotate(gt, angle)
+        dc.board.layers[self._silklayer()].add(gt)
 
     def minilabel(self, dc, s):
         dc.push()

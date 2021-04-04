@@ -396,7 +396,7 @@ class Draw(Turtle):
         self.board.layers["GML"].add(g)
 
     def drill(self, d):
-        self.board.drill(self.xy, d)
+        self.board.add_drill(self.xy, d)
 
     def via(self, connect=None):
         dv = self.board.drc.via_drill / 2 + self.board.drc.via_annular_ring
@@ -405,7 +405,7 @@ class Draw(Turtle):
             self.board.layers[n].add(g, connect)
         if connect is not None:
             self.board.layers[connect].connected.append(g)
-        self.board.drill(self.xy, self.board.drc.via_drill)
+        self.board.add_drill(self.xy, self.board.drc.via_drill)
         gm = sg.Point(self.xy).buffer(dv + self.board.drc.soldermask_margin)
         if self.board.drc.mask_vias:
             self.board.layers["GTS"].add(gm)
@@ -772,21 +772,16 @@ class Board:
         g = self.boundary(1.1 * sr).buffer(sr)
         self.layers["GTO"].add(g.buffer(0))
 
-    def hole(self, xy, inner, outer=None, show_outline=False):
-        self.npth[inner].append(xy)
-        if outer is not None and show_outline:
-            g = sg.LinearRing(sg.Point(xy).buffer(outer / 2).exterior).buffer(
-                self.drc.silk_width / 2
-            )
-            self.layers["GTO"].add(g)
-        self.keepouts.append(sg.Point(xy).buffer(inner / 2 + self.drc.hole_clearance))
-        gm = sg.Point(xy).buffer(inner / 2 + self.drc.hole_mask)
+    def add_hole(self, xy, diameter):
+        self.npth[diameter].append(xy)
+        self.keepouts.append(sg.Point(xy).buffer(diameter / 2 + self.drc.hole_clearance))
+        gm = sg.Point(xy).buffer(diameter / 2 + self.drc.hole_mask)
         if self.drc.mask_holes:
             self.layers["GTS"].add(gm)
             self.layers["GBS"].add(gm)
 
-    def drill(self, xy, diam):
-        self.holes[diam].append(xy)
+    def add_drill(self, xy, diameter):
+        self.holes[diameter].append(xy)
 
     def add_keepout_to_obj(self, obj, layer=None):
         bb = obj.bounds

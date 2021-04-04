@@ -42,11 +42,11 @@ class LibraryPart(Part):
             elif c.tag == "hole":
                 (x, y, drill) = [float(attr[t]) for t in "x y drill".split()]
                 p = dc.copy().goxy(x, y)
-                dc.board.hole(p.xy, drill)
+                dc.board.add_hole(p.xy, drill)
             elif c.tag == "circle" and attr["layer"] == "51":
                 (x, y, radius) = [float(attr[t]) for t in "x y radius".split()]
                 p = dc.copy().goxy(x, y)
-                dc.board.hole(p.xy, 2 * radius)
+                dc.board.add_hole(p.xy, 2 * radius)
             elif c.tag == "smd":
                 (x, y, dx, dy) = [float(attr[t]) for t in "x y dx dy".split()]
                 p = dc.copy().goxy(x, y)
@@ -61,7 +61,7 @@ class LibraryPart(Part):
 
                 dc.push()
                 dc.goxy(x, y)
-                dc.board.hole(dc.xy, drill)
+                dc.board.add_hole(dc.xy, drill)
                 shape = attr.get("shape", "circle")
                 n = {"long": 60, "circle": 60, "octagon": 8, "square": 4}[shape]
                 if shape == "square":

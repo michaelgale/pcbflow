@@ -33,9 +33,8 @@ class C0402(Discrete2):
         dc.silko(side=self.side)
 
         dc.push()
-        dc.right(90)
-        dc.forward(2.65)
-        self.label(dc)
+        dc.forward(-1.2)
+        self.label(dc, angle=90)
         dc.pop()
 
     def escape_2layer(self):
@@ -63,9 +62,8 @@ class C0603(Discrete2):
         dc.silko(side=self.side)
 
         dc.push()
-        dc.right(90)
-        dc.forward(2)
-        self.label(dc)
+        dc.forward(-1.3)
+        self.label(dc, angle=90)
         dc.pop()
 
 
@@ -88,9 +86,8 @@ class C1206(Discrete2):
         dc.silko(side=self.side)
 
         dc.push()
-        dc.right(90)
-        dc.forward(4)
-        self.label(dc)
+        dc.forward(-1.8)
+        self.label(dc, angle=90)
         dc.pop()
 
 

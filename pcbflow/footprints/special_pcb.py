@@ -22,7 +22,7 @@ class Castellation(Part):
             dc.contact()
             dc.push()
             dc.forward(0.375)
-            dc.board.hole(dc.xy, 0.7)
+            dc.board.add_hole(dc.xy, 0.7)
             dc.pop()
             dc.left(90)
 

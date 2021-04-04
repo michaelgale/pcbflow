@@ -12,7 +12,7 @@ if __name__ == "__main__":
         (35, 25),
     ]
     for x, y in holexy:
-        brd.hole((x, y), 2.0, 5)
+        brd.add_hole((x, y), 2.0, 5)
     brd.outline()
     brd.fill_any("GTL", "GND")
     brd.fill_any("GBL", "GND")
