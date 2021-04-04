@@ -97,11 +97,13 @@ class Part:
             dc.board.layers[self._silklayer()].add(hershey.ctext(x, y, self.id))
         dc.pop()
 
-    def pad(self, dc, padsize=None, maskratio=1.0):
+    def pad(self, dc, padsize=None):
         for n in self._layers():
             if n.endswith("S"):
                 if padsize is not None:
-                    dc.rect(maskratio * padsize[0], maskratio * padsize[1])
+                    ps0 = padsize[0] + self.board.drc.mask_border
+                    ps1 = padsize[1] + self.board.drc.mask_border
+                    dc.rect(ps0, ps1)
                 gs = dc.poly()
                 dc.board.layers[n].add(gs)
             else:
@@ -116,7 +118,7 @@ class Part:
     def rpad(self, dc, w, h):
         dc.right(90)
         dc.rect(w, h)
-        self.pad(dc)
+        self.pad(dc, padsize=(w, h))
         dc.left(90)
 
     def roundpad(self, dc, d):
@@ -158,7 +160,7 @@ class C0402(Discrete2):
             dc.right(d)
             dc.forward(1.30 / 2)
             dc.rect(0.8, 0.8)
-            self.pad(dc, padsize=(0.8, 0.8), maskratio=1.1)
+            self.pad(dc, padsize=(0.8, 0.8))
             dc.pop()
 
         # Silk outline of the package
@@ -188,7 +190,7 @@ class C0603(Discrete2):
             dc.right(d)
             dc.forward(1.70 / 2)
             dc.rect(1.0, 1.0)
-            self.pad(dc, padsize=(1.0, 1.0), maskratio=1.2)
+            self.pad(dc, padsize=(1.0, 1.0))
             dc.pop()
 
         # Silk outline of the package
@@ -213,7 +215,7 @@ class C1206(Discrete2):
             dc.right(d)
             dc.forward(3.40 / 2)
             dc.rect(2.0, 2.0)
-            self.pad(dc, padsize=(2.0, 2.0), maskratio=1.15)
+            self.pad(dc, padsize=(2.0, 2.0))
             dc.pop()
 
         # Silk outline of the package
@@ -250,6 +252,29 @@ class L1206(C1206):
 # Taken from:
 # https://www.analog.com/media/en/package-pcb-resources/package/pkg_pdf/ltc-legacy-qfn/QFN_64_05-08-1705.pdf
 
+class SOT23(Part):
+    family = "T"
+    def place(self, dc):
+        self.chamfered(dc, 3.0, 1.4)
+        (w, h) = (1.0, 1.4)
+        self.pad(dc.copy().goxy(-0.95, -1.1), padsize=(w, h))
+        self.pad(dc.copy().goxy( 0.95, -1.1), padsize=(w, h))
+        self.pad(dc.copy().goxy( 0.00,  1.1), padsize=(w, h))
+        [p.setname(nm) for p,nm in zip(self.pads, ('1', '2', '3'))]
+
+class SOT223(Part):
+    family = "T"
+    def place(self, dc):
+        self.chamfered(dc, 3.0, 1.4)
+        (w, h) = (1.4, 1.7)
+        y = 4.8/2 + h/2
+        x = w + 0.9
+        self.pad(dc.copy().goxy(-x, -y), padsize=(w, h))
+        self.pad(dc.copy().goxy(x, -y), padsize=(w, h))
+        self.pad(dc.copy().goxy(0.0, -y), padsize=(w, h))
+        self.pad(dc.copy().goxy(0.0, y), padsize=(4, h))
+        [p.setname(nm) for p,nm in zip(self.pads, ('1', '2', '3', '4'))]
+
 
 class QFN64(Part):
     family = "U"
@@ -266,7 +291,7 @@ class QFN64(Part):
                 dc.forward(j)
                 dc.square(g - 0.5)
                 self.pad(dc)
-                dc.via("GL2")
+                dc.via("GP2")
                 dc.pop()
         self.pads = self.pads[:1]
 

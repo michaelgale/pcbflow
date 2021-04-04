@@ -21,4 +21,6 @@ class DRC():
         self.outline_space = mil(20)
         self.bitmap_res = 0.04
         self.silk_width = mil(6)
+        self.mask_border = mil(5)
+
 
