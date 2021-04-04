@@ -398,14 +398,17 @@ class Draw(Turtle):
         self.board.drill(self.xy, d)
 
     def via(self, connect=None):
-        g = sg.Point(self.xy).buffer(
-            self.board.drc.via_drill / 2 + self.board.drc.via_annular_ring
-        )
+        dv = self.board.drc.via_drill / 2 + self.board.drc.via_annular_ring
+        g = sg.Point(self.xy).buffer(dv)
         for n in ("GTL", "GP2", "GP3", "GBL"):
             self.board.layers[n].add(g, connect)
         if connect is not None:
             self.board.layers[connect].connected.append(g)
         self.board.drill(self.xy, self.board.drc.via_drill)
+        gm = sg.Point(self.xy).buffer(dv + self.board.drc.soldermask_margin)
+        if self.board.drc.mask_vias:
+            self.board.layers["GTS"].add(gm)
+            self.board.layers["GBS"].add(gm)
         self.newpath()
         return self
 
@@ -427,7 +430,7 @@ class Draw(Turtle):
 
     def wvia(self, l):
         b = self.board
-        self.forward(b.drc.via_space + b.drc.via_drill)
+        self.forward(b.drc.clearance + b.drc.via_drill)
         self.wire(width=b.drc.via_track_width, layer=l)
         self.via(l)
 
@@ -493,7 +496,6 @@ class River(Turtle):
     def __init__(self, board, tt):
         self.tt = tt
         self.board = board
-        self.c = self.board.c
 
     def __repr__(self):
         return "<River %d at %r>" % (len(self.tt), self.tt[0])
@@ -502,7 +504,7 @@ class River(Turtle):
         return len(self.tt)
 
     def r(self):
-        return self.c * (len(self.tt) - 1)
+        return self.board.drc.channel() * (len(self.tt) - 1)
 
     def forward(self, d):
         [t.forward(d) for t in self.tt]
@@ -580,7 +582,7 @@ class River(Turtle):
         return self
 
     def spread(self, d):
-        c = self.board.drc.trace_width + self.board.drc.trace_space
+        c = self.board.drc.channel()
         n = len(self.tt) - 1
         for i, t in enumerate(self.tt[::-1]):
             i_ = n - i
@@ -600,9 +602,9 @@ class River(Turtle):
 
         d = (y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1
         if d < 0:
-            d += self.c
+            d += self.board.drc.channel()
         else:
-            d -= self.c
+            d -= self.board.drc.channel()
         self.shimmy(ratio * -d)
         other.shimmy((1 - ratio) * d)
 
@@ -634,7 +636,7 @@ class River(Turtle):
 
     def meet0(self, other):
         d = self.tt[0].distance(other.tt[0])
-        c = self.board.drc.trace_width + self.board.drc.trace_space
+        c = self.board.drc.channel()
         r = c * (len(self.tt) - 1)
         l = math.sqrt(d ** 2 - r ** 2)
         dir_d = self.tt[0].direction(other.tt[0])
@@ -669,9 +671,9 @@ class River(Turtle):
         return self
 
     def through(self):
-        h = self.board.drc.via_drill + self.board.drc.via_space
-        th = math.acos(self.c / h)
-        d = self.board.drc.via_drill / 2 + self.board.via_space
+        h = self.board.drc.via_drill + self.board.drc.clearance
+        th = math.acos(self.board.drc.channel() / h)
+        d = self.board.drc.via_drill / 2 + self.board.clearance
         a = h * math.sin(th)
         th_d = math.degrees(th)
         dst = {"GTL": "GBL", "GBL": "GTL"}[self.tt[0].layer]
@@ -686,9 +688,9 @@ class River(Turtle):
         return self
 
     def shuffle(self, other, mp):
-        h = self.board.via + self.board.via_space  # / math.sqrt(2)
-        th = math.acos(self.c / h)
-        d = self.board.via / 2 + self.board.via_space
+        h = self.board.drc.via_drill + self.board.drc.clearance  # / math.sqrt(2)
+        th = math.acos(self.board.drc.channel() / h)
+        d = self.board.drc.via_drill / 2 + self.board.drc.clearance
         a = h * math.sin(th)
         th_d = math.degrees(th)
         dst = {"GTL": "GBL", "GBL": "GTL"}[self.tt[0].layer]
@@ -722,10 +724,6 @@ class Board:
         self.npth = defaultdict(list)
         self.keepouts = []
 
-        self.c = (
-            self.drc.trace_width + self.drc.trace_space
-        )  # track spacing, used everywhere
-
         self.counters = defaultdict(lambda: 0)
         self.nets = []
 
@@ -755,7 +753,7 @@ class Board:
         x0, y0 = (0, 0)
         x1, y1 = self.size
         bo = sg.LinearRing([(x0, y0), (x1, y0), (x1, y1), (x0, y1)]).buffer(
-            self.drc.outline_space
+            self.drc.outline_clearance
         )
         self.keepouts.append(bo)
 
@@ -776,7 +774,7 @@ class Board:
                 self.drc.silk_width / 2
             )
             self.layers["GTO"].add(g)
-        self.keepouts.append(sg.Point(xy).buffer(inner / 2 + self.drc.hole_keepout))
+        self.keepouts.append(sg.Point(xy).buffer(inner / 2 + self.drc.hole_clearance))
         gm = sg.Point(xy).buffer(inner / 2 + self.drc.hole_mask)
         if self.drc.mask_holes:
             self.layers["GTS"].add(gm)
@@ -798,19 +796,20 @@ class Board:
         ko = so.unary_union(self.keepouts)
         g = (
             sg.box(0, 0, self.size[0], self.size[1])
-            .buffer(-self.drc.keepout_space)
+            .buffer(-self.drc.clearance)
             .difference(ko)
         )
-        self.layers["GL2"].fill(g, "GL2", self.drc.via_space)
-        self.layers["GL3"].fill(g, "GL3", self.drc.via_space)
+        self.layers["GL2"].fill(g, "GL2", self.drc.clearance)
+        self.layers["GL3"].fill(g, "GL3", self.drc.clearance)
 
     def fill_any(self, layer, include):
         ko = so.unary_union(self.keepouts)
-        g = self.body().buffer(-self.drc.keepout_space).difference(ko)
+        g = self.body().buffer(-self.drc.clearance).difference(ko)
         la = self.layers[layer]
-        d = max(self.drc.trace_space, self.drc.via_space)
         notouch = so.unary_union([o for (nm, o) in la.polys if nm != include])
-        self.layers[layer].add(g.difference(notouch.buffer(d)), include)
+        self.layers[layer].add(
+            g.difference(notouch.buffer(self.drc.clearance)), include
+        )
 
     def addnet(self, a, b):
         self.nets.append(((a.part, a.name), (b.part, b.name)))
@@ -844,30 +843,39 @@ class Board:
             if not mask.contains(lg):
                 print("Layer", l, "boundary error")
 
-    def save(self, basename, with_povray=False):
-        newpath = os.path.normpath("./gerbers" + os.sep + basename)
+    def save(self, basename, in_subdir=True, with_povray=False):
+        if in_subdir:
+            newpath = os.path.normpath("./%s" % (basename))
+            if not os.path.isdir(newpath):
+                try:
+                    os.mkdir(newpath)
+                except OSError:
+                    print("Directory %s cannot be created" % (newpath))
+            assetpath = os.path.normpath("./%s" % (basename) + os.sep + basename)
+        else:
+            assetpath = basename
         for (id, l) in self.layers.items():
-            with open(newpath + "." + id, "wt") as f:
+            with open(assetpath + "." + id, "wt") as f:
                 l.save(f)
-        with open(newpath + "_PTH.DRL", "wt") as f:
+        with open(assetpath + "_PTH.DRL", "wt") as f:
             excellon(f, self.holes, "Plated,1,4,PTH")
-        with open(newpath + "_NPTH.DRL", "wt") as f:
+        with open(assetpath + "_NPTH.DRL", "wt") as f:
             excellon(f, self.npth, "NonPlated,1,4,NPTH")
 
         if with_povray:
             substrate = self.substrate()
             mask = substrate.preview()
-            with open(basename + ".sub.pov", "wt") as f:
+            with open(assetpath + ".sub.pov", "wt") as f:
                 substrate.povray(f, "prism { linear_sweep linear_spline 0 1")
-            with open(basename + ".gto.pov", "wt") as f:
+            with open(assetpath + ".gto.pov", "wt") as f:
                 self.layers["GTO"].povray(f, mask=mask)
-            with open(basename + ".gtl.pov", "wt") as f:
+            with open(assetpath + ".gtl.pov", "wt") as f:
                 self.layers["GTL"].povray(f, mask=mask)
-            with open(basename + ".gts.pov", "wt") as f:
+            with open(assetpath + ".gts.pov", "wt") as f:
                 self.layers["GTS"].povray(f, mask=mask, invert=True)
 
-        self.bom(basename)
-        self.pnp(basename)
+        self.bom(assetpath)
+        self.pnp(assetpath)
 
     def pnp(self, fn):
         with open(fn + "-pnp.csv", "wt") as f:
@@ -884,9 +892,13 @@ class Board:
                     if p.inBOM:
                         c = p.center
                         (x, y) = c.xy
-                        note = p.footprint + "-" + p.mfr + p.val
+                        note = p.footprint
+                        if len(p.mfr) > 0:
+                            note += "-" + p.mfr
+                        if len(p.val) > 0:
+                            note += "-" + p.val
                         cs.writerow(
-                            [p.id, flt(x), flt(y), str(int(c.dir)), "Top", note]
+                            [p.id, flt(x), flt(y), str(int(c.dir)), p.side, note]
                         )
 
     def bom(self, fn):
@@ -955,7 +967,7 @@ class Board:
             bank = ibank
         bank[0].right(a)
         for i, t in enumerate(bank[1:], 1):
-            gap = (self.drc.trace_width + self.drc.trace_space) * i
+            gap = self.drc.channel() * i
             t.left(a)
             t.approach(gap, bank[0])
             t.right(2 * a)
@@ -969,7 +981,7 @@ class Board:
             bank = ibank
         bank[0].right(a)
         for i, t in enumerate(bank[1:], 1):
-            gap = (self.drc.trace_width + self.drc.trace_space) * i
+            gap = self.drc.channel() * i
             t.forward(gap)
             t.right(a)
         extend(bank[0], bank)
@@ -981,7 +993,7 @@ class Board:
         return rv
 
     def enriverPair(self, z):
-        c = self.drc.trace_width + self.drc.trace_space
+        c = self.drc.channel()
         y = 0.5 * (z[0].distance(z[1]) - c)
         h = math.sqrt(2 * (y ** 2))
 
