@@ -21,7 +21,7 @@ class DRC:
         self.mask_vias = False
         self.mask_holes = True
         self.hole_mask = MILS(16)
-        self.soldermask_margin = MILS(5)
+        self.soldermask_margin = MILS(3)
         # Other
         self.bitmap_res = 0.04
         self.silk_width = MILS(6)

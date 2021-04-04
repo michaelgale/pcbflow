@@ -126,20 +126,13 @@ class Part:
             )
         dc.pop()
 
-    def pad(self, dc, padsize=None):
+    def pad(self, dc):
         for n in self._layers():
             if n.endswith("S"):
-                if padsize is not None:
-                    ps0 = padsize[0] + self.board.drc.soldermask_margin
-                    ps1 = padsize[1] + self.board.drc.soldermask_margin
-                    dc.rect(ps0, ps1)
-                gs = dc.poly()
-                dc.board.layers[n].add(gs)
+                g = dc.poly().buffer(self.board.drc.soldermask_margin)
             else:
-                if padsize is not None:
-                    dc.rect(*padsize)
                 g = dc.poly()
-                dc.board.layers[n].add(g)
+            dc.board.layers[n].add(g)
         p = dc.copy()
         p.part = self.id
         self.pads.append(p)
@@ -147,7 +140,7 @@ class Part:
     def rpad(self, dc, w, h):
         dc.right(90)
         dc.rect(w, h)
-        self.pad(dc, padsize=(w, h))
+        self.pad(dc)
         dc.left(90)
 
     def roundpad(self, dc, d):

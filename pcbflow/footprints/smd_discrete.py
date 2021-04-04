@@ -25,7 +25,7 @@ class C0402(Discrete2):
             dc.right(d)
             dc.forward(1.30 / 2)
             dc.rect(0.8, 0.8)
-            self.pad(dc, padsize=(0.8, 0.8))
+            self.pad(dc)
             dc.pop()
 
         # Silk outline of the package
@@ -56,7 +56,7 @@ class C0603(Discrete2):
             dc.right(d)
             dc.forward(1.70 / 2)
             dc.rect(1.0, 1.0)
-            self.pad(dc, padsize=(1.0, 1.0))
+            self.pad(dc)
             dc.pop()
 
         # Silk outline of the package
@@ -82,7 +82,7 @@ class C1206(Discrete2):
             dc.right(d)
             dc.forward(3.40 / 2)
             dc.rect(2.0, 2.0)
-            self.pad(dc, padsize=(2.0, 2.0))
+            self.pad(dc)
             dc.pop()
 
         # Silk outline of the package
