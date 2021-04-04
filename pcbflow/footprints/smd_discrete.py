@@ -31,10 +31,12 @@ class C0402(Discrete2):
         # Silk outline of the package
         dc.rect(1.0, 0.5)
         dc.silko(side=self.side)
-
         dc.push()
-        dc.forward(-1.2)
-        self.label(dc, angle=90)
+        if dc.dir == 90:
+            dc.forward(-1.2)
+        else:
+            dc.forward(1.2)
+        self.label(dc, angle=dc.dir)
         dc.pop()
 
     def escape_2layer(self):
@@ -60,10 +62,12 @@ class C0603(Discrete2):
         # Silk outline of the package
         dc.rect(1.6, 0.8)
         dc.silko(side=self.side)
-
         dc.push()
-        dc.forward(-1.3)
-        self.label(dc, angle=90)
+        if dc.dir == 90:
+            dc.forward(-1.3)
+        else:
+            dc.forward(1.3)
+        self.label(dc, angle=dc.dir)
         dc.pop()
 
 
@@ -84,10 +88,12 @@ class C1206(Discrete2):
         # Silk outline of the package
         dc.rect(3.2, 1.6)
         dc.silko(side=self.side)
-
         dc.push()
-        dc.forward(-1.8)
-        self.label(dc, angle=90)
+        if dc.dir == 90:
+            dc.forward(-1.8)
+        else:
+            dc.forward(1.8)
+        self.label(dc, angle=dc.dir)
         dc.pop()
 
 
