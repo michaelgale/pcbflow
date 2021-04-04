@@ -29,15 +29,17 @@ class TSSOP14(TSSOP):
     N = 14
     footprint = "TSSOP14"
 
+
 class TSSOP16(TSSOP):
     N = 16
     footprint = "TSSOP16"
+
 
 class TSSOP20(TSSOP):
     N = 20
     footprint = "TSSOP20"
 
+
 class TSSOP24(TSSOP):
     N = 24
     footprint = "TSSOP24"
-

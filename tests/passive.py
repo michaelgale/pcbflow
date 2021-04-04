@@ -8,10 +8,10 @@ if __name__ == "__main__":
     brd = Board((40, 30))
     brd.via_track_width = mil(24)
 
-    C0603(brd.DC((20, 20)).right(90), '0.1 uF', side="top")
-    C0603(brd.DC((22, 20)).right(90), '0.1 uF', side="bottom")
-    C0603(brd.DC((24, 20)).right(90), '0.1 uF', side="top").escape("GTL", "GTL")
-    C0603(brd.DC((26, 20)).right(90), '0.1 uF', side="bottom").escape("GBL", "GBL")
+    C0603(brd.DC((20, 20)).right(90), "0.1 uF", side="top")
+    C0603(brd.DC((22, 20)).right(90), "0.1 uF", side="bottom")
+    C0603(brd.DC((24, 20)).right(90), "0.1 uF", side="top").escape("GTL", "GTL")
+    C0603(brd.DC((26, 20)).right(90), "0.1 uF", side="bottom").escape("GBL", "GBL")
 
     R0603(brd.DC((20, 10)).right(90), "4.7k", side="top")
     R0603(brd.DC((22, 10)).right(90), "4.7k", side="bottom")

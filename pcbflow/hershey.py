@@ -1,15 +1,17 @@
 #! /usr/bin/env python3
 #
 # Hershey typeface rendering
-# 
+#
 
 
 import shapely.geometry as sg
 import shapely.affinity as sa
 import shapely.ops as so
 
+
 def char2val(c):  # data is stored as signed bytes relative to ASCII R
-    return ord(c) - ord('R')
+    return ord(c) - ord("R")
+
 
 def hersheyparse(dat):
     """ reads a line of Hershey font text """
@@ -19,7 +21,7 @@ def hersheyparse(dat):
     # individual lines are stored separated by <space>+R
     # starting at col 11
 
-    for s in dat[10:].split(' R'):
+    for s in dat[10:].split(" R"):
 
         # each line is a list of pairs of coordinates
         # NB: origin is at centre(ish) of character
@@ -31,81 +33,107 @@ def hersheyparse(dat):
         line = list(zip(coords[0::2], coords[1::2]))
         lines.append(line)
     glyph = {  # character code in columns 1-6; it's not ASCII
-               # indicative number of vertices in columns 6-9 ** NOT USED **
-               # left side bearing encoded in column 9
-               # right side bearing encoded in column 10
-        'charcode': int(dat[0:5]),
-        'left': char2val(dat[8]),
-        'right': char2val(dat[9]),
-        'lines': lines,
-        }
-    return (glyph['charcode'], glyph)
+        # indicative number of vertices in columns 6-9 ** NOT USED **
+        # left side bearing encoded in column 9
+        # right side bearing encoded in column 10
+        "charcode": int(dat[0:5]),
+        "left": char2val(dat[8]),
+        "right": char2val(dat[9]),
+        "lines": lines,
+    }
+    return (glyph["charcode"], glyph)
+
 
 def plline(l):
-    (ucode, h, _) = [int(i, 0) for i in l[:-1].split(',')]
+    (ucode, h, _) = [int(i, 0) for i in l[:-1].split(",")]
     return (unichr(ucode), h)
 
+
 # From http://paulbourke.net/dataformats/hershey/romans.hmp
-codes = ([None] * 32) + [
-    699, 714, 717, 733, 719, 2271, 734, 731,
-    721, 722, 2219, 725, 711, 724, 710, 720,
-    ] + list(range(700, 710)) + [
-    712, 713, 2241, 726, 2242, 715, 2273,
-    ] + list(range(501, 527)) + [
-    2223, 804, 2224, 2262, 999, 730,
-    ] + list(range(601, 627)) + [
-    2225, 723, 2226, 2246, 718,
-]
+codes = (
+    ([None] * 32)
+    + [
+        699,
+        714,
+        717,
+        733,
+        719,
+        2271,
+        734,
+        731,
+        721,
+        722,
+        2219,
+        725,
+        711,
+        724,
+        710,
+        720,
+    ]
+    + list(range(700, 710))
+    + [712, 713, 2241, 726, 2242, 715, 2273,]
+    + list(range(501, 527))
+    + [2223, 804, 2224, 2262, 999, 730,]
+    + list(range(601, 627))
+    + [2225, 723, 2226, 2246, 718,]
+)
+
 
 def char(c):
-    lis = hf[codes[ord(c)]]['lines']
+    lis = hf[codes[ord(c)]]["lines"]
     return so.unary_union([sg.LineString(l) for l in lis])
+
 
 def chars(s):
     x = 0
     o = []
     for c in s:
         glyph = hf[codes[ord(c)]]
-        x -= glyph['left']
-        go = so.unary_union([sg.LineString(l) for l in glyph['lines']])
+        x -= glyph["left"]
+        go = so.unary_union([sg.LineString(l) for l in glyph["lines"]])
         o.append(sa.translate(go, x, 0))
-        x += glyph['right']
+        x += glyph["right"]
     return so.unary_union(o)
+
 
 sf = 1 / 32
 
-def text(x, y, s, scale = 1.0, side="top"):
+
+def text(x, y, s, scale=1.0, side="top", linewidth=0.08):
     o = chars(s)
-    o = sa.scale(o, sf * scale, -sf * scale, origin = (0,0))
+    o = sa.scale(o, sf * scale, -sf * scale, origin=(0, 0))
     cx = o.centroid.x
     cy = o.centroid.y
     (cx, cy) = (0, 0)
     o = sa.translate(o, -cx + x, -cy + y)
     if side == "bottom":
         o = sa.scale(o, -1.0, 1.0)
-    return o.buffer(scale * 6 * .0254 / 2)
+    return o.buffer(scale * linewidth / 2)
 
-def ctext(x, y, s, side="top"):
+
+def ctext(x, y, s, side="top", linewidth=0.08):
     o = chars(s)
-    o = sa.scale(o, sf, -sf, origin = (0,0))
+    o = sa.scale(o, sf, -sf, origin=(0, 0))
     cx = o.envelope.centroid.x
     cy = o.envelope.centroid.y
     o = sa.translate(o, -cx + x, -cy + y)
     if side == "bottom":
         o = sa.scale(o, -1.0, 1.0)
-    return o.buffer(6 * .0254 / 2)
+    return o.buffer(linewidth / 2)
 
-def ltext(x, y, s, side="top"):
+
+def ltext(x, y, s, side="top", linewidth=0.08):
     o = chars(s)
-    o = sa.scale(o, sf, -sf, origin = (0,0))
+    o = sa.scale(o, sf, -sf, origin=(0, 0))
     o = sa.translate(o, x, y)
     if side == "bottom":
         o = sa.scale(o, -1.0, 1.0)
-    return o.buffer(6 * .0254 / 2)
+    return o.buffer(linewidth / 2)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     hf = dict([hersheyparse(l[:-1]) for l in open("hershey-occidental.dat")])
-    print('hf = '+ repr(hf))
+    print("hf = " + repr(hf))
 
 # fmt: off
 hf = {1: {'charcode': 1, 'left': -5, 'right': 5, 'lines': [[(0, -5),

@@ -11,10 +11,22 @@ VERSION = __project__ + "-" + __version__
 
 script_dir = os.path.dirname(__file__)
 
-def inches(x):  return x * 25.4
-def mil(x):     return inches(x / 1000)
-def micron(x):  return x / 1000
-def DEGREES(r): return 180 * r / math.pi
+
+def inches(x):
+    return x * 25.4
+
+
+def mil(x):
+    return inches(x / 1000)
+
+
+def micron(x):
+    return x / 1000
+
+
+def DEGREES(r):
+    return 180 * r / math.pi
+
 
 from .gerber import Gerber
 from .excellon import excellon

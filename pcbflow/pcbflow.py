@@ -42,6 +42,7 @@ class Layer:
         self.function = function
         self.connected = []
         self.p = None
+        self.keepouts = []
 
     def add(self, o, nm=None):
         self.polys.append((nm, o.simplify(0.001, preserve_topology=False)))
@@ -464,12 +465,16 @@ class Draw(Turtle):
 
     def text(self, s, side="top"):
         (x, y) = self.xy
-        self.board.layers[self._silklayer(side)].add(hershey.ctext(x, y, s, side=side))
+        self.board.layers[self._silklayer(side)].add(
+            hershey.ctext(x, y, s, side=side, linewidth=self.board.drc.text_silk_width)
+        )
         return self
 
     def ltext(self, s, side="top"):
         (x, y) = self.xy
-        self.board.layers[self._silklayer(side)].add(hershey.ltext(x, y, s, side=side))
+        self.board.layers[self._silklayer(side)].add(
+            hershey.ltext(x, y, s, side=side, linewidth=self.board.drc.text_silk_width)
+        )
 
     def through(self):
         self.wire()
@@ -783,8 +788,97 @@ class Board:
     def drill(self, xy, diam):
         self.holes[diam].append(xy)
 
-    def annotate(self, x, y, s):
-        self.layers["GTO"].add(hershey.ctext(x, y, s))
+    def add_keepout_to_obj(self, obj, layer=None):
+        bb = obj.bounds
+        g = sg.box(bb[0], bb[1], bb[2], bb[3]).buffer(self.drc.clearance)
+        if layer is not None:
+            self.layers[layer].keepouts.append(g)
+        else:
+            self.keepouts.append(g)
+
+    def add_mask_to_obj(self, obj, side="top"):
+        bb = obj.bounds
+        g = sg.box(bb[0], bb[1], bb[2], bb[3]).buffer(self.drc.soldermask_margin)
+        if side == "top":
+            self.layers["GTS"].add(g)
+        else:
+            self.layers["GBS"].add(g)
+
+    def add_text(
+        self,
+        x,
+        y,
+        text,
+        scale=1.0,
+        layer="GTO",
+        side="top",
+        keepout_box=False,
+        soldermask_box=False,
+    ):
+        gt = hershey.text(
+            x, y, text, scale=scale, side=side, linewidth=self.drc.text_silk_width
+        )
+        self.layers[layer].add(gt)
+        if keepout_box:
+            self.add_keepout_to_obj(gt, layer=layer)
+        if soldermask_box:
+            self.add_mask_to_obj(gt, side)
+
+    def add_bitmap(
+        self,
+        fn,
+        cx,
+        cy,
+        side="top",
+        layer=None,
+        scale=None,
+        keepout_box=False,
+        soldermask_box=False,
+    ):
+        im = Image.open(fn)
+        im = im.convert("L")
+        if side.lower() == "bottom":
+            im = im.transpose(Image.FLIP_LEFT_RIGHT)
+        if scale is not None:
+            w = int(im.size[0] * scale)
+            h = int(im.size[1] * scale)
+            im = im.resize((w, h), Image.BICUBIC)
+        im = im.point(lambda p: p > 127 and 255)
+        (w, h) = im.size
+        ar = im.load()
+        g = []
+        s = self.drc.bitmap_res
+        ov = 1
+        for y in range(h):
+            (y0, y1) = (y * s, (y + ov) * s)
+            slice = im.crop((0, (h - 1 - y), w, (h - 1 - y) + 1)).tobytes()
+            x = 0
+            while 255 in slice:
+                assert len(slice) == (w - x)
+                if slice[0] == 0:
+                    l = slice.index(255)
+                else:
+                    if 0 in slice:
+                        l = slice.index(0)
+                    else:
+                        l = len(slice)
+                    g.append(sg.box(x * s, y0, (x + l * ov) * s, y1))
+                slice = slice[l:]
+                x += l
+        g = sa.translate(so.unary_union(g), cx - 0.5 * w * s, cy - 0.5 * h * s).buffer(
+            0.001
+        )
+        lyr = layer
+        if side.lower() == "top":
+            lyr = "GTO" if layer is None else layer
+            self.layers[lyr].add(g)
+        else:
+            lyr = "GBO" if layer is None else layer
+            self.layers[lyr].add(g)
+        if keepout_box:
+            self.add_keepout_to_obj(g, layer=lyr)
+        if soldermask_box:
+            self.add_mask_to_obj(g, side)
 
     def DC(self, xy, d=0):
         return Draw(self, xy, d)
@@ -803,9 +897,10 @@ class Board:
         self.layers["GL3"].fill(g, "GL3", self.drc.clearance)
 
     def fill_any(self, layer, include):
-        ko = so.unary_union(self.keepouts)
-        g = self.body().buffer(-self.drc.clearance).difference(ko)
         la = self.layers[layer]
+        kol = so.unary_union(la.keepouts)
+        ko = kol.union(so.unary_union(self.keepouts))
+        g = self.body().buffer(-self.drc.clearance).difference(ko)
         notouch = so.unary_union([o for (nm, o) in la.polys if nm != include])
         self.layers[layer].add(
             g.difference(notouch.buffer(self.drc.clearance)), include
@@ -1006,45 +1101,6 @@ class Board:
         pl = self.parts[part.family]
         pl.append(part)
         return part.family + str(len(pl))
-
-    def bitmap(self, fn, cx, cy, side="top", scale=None):
-        im = Image.open(fn)
-        im = im.convert("L")
-        if side.lower() == "bottom":
-            im = im.transpose(Image.FLIP_LEFT_RIGHT)
-        if scale is not None:
-            w = int(im.size[0] * scale)
-            h = int(im.size[1] * scale)
-            im = im.resize((w, h), Image.BICUBIC)
-        im = im.point(lambda p: p > 127 and 255)
-        (w, h) = im.size
-        ar = im.load()
-        g = []
-        s = self.drc.bitmap_res
-        ov = 1
-        for y in range(h):
-            (y0, y1) = (y * s, (y + ov) * s)
-            slice = im.crop((0, (h - 1 - y), w, (h - 1 - y) + 1)).tobytes()
-            x = 0
-            while 255 in slice:
-                assert len(slice) == (w - x)
-                if slice[0] == 0:
-                    l = slice.index(255)
-                else:
-                    if 0 in slice:
-                        l = slice.index(0)
-                    else:
-                        l = len(slice)
-                    g.append(sg.box(x * s, y0, (x + l * ov) * s, y1))
-                slice = slice[l:]
-                x += l
-        g = sa.translate(so.unary_union(g), cx - 0.5 * w * s, cy - 0.5 * h * s).buffer(
-            0.001
-        )
-        if side.lower() == "top":
-            self.layers["GTO"].add(g)
-        else:
-            self.layers["GBO"].add(g)
 
     def check(self):
         def npoly(g):

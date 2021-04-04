@@ -1,12 +1,12 @@
 #! /usr/bin/env python3
 #
-# Design Rules Check (DRC) 
+# Design Rules Check (DRC)
 #
 
 from pcbflow import *
 
-class DRC():
 
+class DRC:
     def __init__(self):
         # Copper features
         self.trace_width = mil(8)
@@ -25,7 +25,7 @@ class DRC():
         # Other
         self.bitmap_res = 0.04
         self.silk_width = mil(6)
+        self.text_silk_width = mil(6)
 
     def channel(self):
         return self.trace_width + self.clearance
-
