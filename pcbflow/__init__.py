@@ -12,15 +12,15 @@ VERSION = __project__ + "-" + __version__
 script_dir = os.path.dirname(__file__)
 
 
-def inches(x):
+def INCHES(x):
     return x * 25.4
 
 
-def mil(x):
-    return inches(x / 1000)
+def MILS(x):
+    return INCHES(x / 1000)
 
 
-def micron(x):
+def MICRONS(x):
     return x / 1000
 
 

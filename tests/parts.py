@@ -6,7 +6,7 @@ from pcbflow import *
 
 if __name__ == "__main__":
     brd = Board((50, 30))
-    brd.via_track_width = mil(24)
+    brd.via_track_width = MILS(24)
 
     SOT23(brd.DC((10, 20)), side="top")
     SOT223(brd.DC((20, 20)), side="top")

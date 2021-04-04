@@ -806,15 +806,15 @@ class Board:
 
     def add_text(
         self,
-        x,
-        y,
+        xy,
         text,
         scale=1.0,
-        layer="GTO",
         side="top",
+        layer="GTO",
         keepout_box=False,
         soldermask_box=False,
     ):
+        (x, y) = xy
         gt = hershey.text(
             x, y, text, scale=scale, side=side, linewidth=self.drc.text_silk_width
         )
@@ -826,15 +826,15 @@ class Board:
 
     def add_bitmap(
         self,
+        xy,
         fn,
-        cx,
-        cy,
+        scale=None,
         side="top",
         layer=None,
-        scale=None,
         keepout_box=False,
         soldermask_box=False,
     ):
+        (x, y) = xy
         im = Image.open(fn)
         im = im.convert("L")
         if side.lower() == "bottom":
@@ -849,12 +849,12 @@ class Board:
         g = []
         s = self.drc.bitmap_res
         ov = 1
-        for y in range(h):
-            (y0, y1) = (y * s, (y + ov) * s)
-            slice = im.crop((0, (h - 1 - y), w, (h - 1 - y) + 1)).tobytes()
-            x = 0
+        for yh in range(h):
+            (y0, y1) = (yh * s, (yh + ov) * s)
+            slice = im.crop((0, (h - 1 - yh), w, (h - 1 - yh) + 1)).tobytes()
+            xb = 0
             while 255 in slice:
-                assert len(slice) == (w - x)
+                assert len(slice) == (w - xb)
                 if slice[0] == 0:
                     l = slice.index(255)
                 else:
@@ -862,10 +862,10 @@ class Board:
                         l = slice.index(0)
                     else:
                         l = len(slice)
-                    g.append(sg.box(x * s, y0, (x + l * ov) * s, y1))
+                    g.append(sg.box(xb * s, y0, (xb + l * ov) * s, y1))
                 slice = slice[l:]
-                x += l
-        g = sa.translate(so.unary_union(g), cx - 0.5 * w * s, cy - 0.5 * h * s).buffer(
+                xb += l
+        g = sa.translate(so.unary_union(g), x - 0.5 * w * s, y - 0.5 * h * s).buffer(
             0.001
         )
         lyr = layer
@@ -1026,7 +1026,7 @@ class Board:
         ps.append(".05 setlinewidth")
 
         body = self.body()
-        pts = 72 / inches(1)
+        pts = 72 / INCHES(1)
 
         def addring(r, style="stroke"):
             ps.append("newpath")
@@ -1112,9 +1112,9 @@ class Board:
         g = self.layers["GTL"].preview()
 
         def clearance(g):
-            p0 = micron(0)
-            p1 = micron(256)
-            while (p1 - p0) > micron(0.25):
+            p0 = MICRONS(0)
+            p1 = MICRONS(256)
+            while (p1 - p0) > MICRONS(0.25):
                 p = (p0 + p1) / 2
                 if npoly(g) == npoly(g.buffer(p)):
                     p0 = p
@@ -1125,7 +1125,7 @@ class Board:
         for l in ("GTL", "GBL"):
             if self.layers[l].polys:
                 clr = clearance(self.layers[l].preview())
-                if clr < (self.space - micron(1.5)):
+                if clr < (self.space - MICRONS(1.5)):
                     print(
                         "space violation on layer %s, actual %.3f expected %.3f mm"
                         % (l, clr, self.space)
