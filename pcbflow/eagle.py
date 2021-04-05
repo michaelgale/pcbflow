@@ -51,8 +51,8 @@ class LibraryPart(Part):
                 (x, y, dx, dy) = [float(attr[t]) for t in "x y dx dy".split()]
                 p = dc.copy().goxy(x, y)
                 p.rect(dx, dy)
-                p.setname(attr["name"])
-                self.pad(p)
+                p.set_name(attr["name"])
+                self.smd_pad(p)
             elif c.tag == "pad":
                 (x, y, diameter, drill) = [
                     float(attr[t]) for t in "x y diameter drill".split()
@@ -70,10 +70,10 @@ class LibraryPart(Part):
                 p = dc.copy()
                 p.n_agon(diameter / 2, n)
 
-                p.setname(nm)
+                p.set_name(nm)
                 p.part = self.id
                 self.pads.append(p)
-                p.contact()
+                p.pin_pad()
 
                 if self.use_pad_text and nm not in ("RESERVED",):
                     self.board.annotate(dc.xy[0], dc.xy[1], nm)

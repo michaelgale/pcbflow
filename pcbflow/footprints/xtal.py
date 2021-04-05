@@ -19,4 +19,4 @@ class SMD_3225_4P(Part):
             self.train(dc, 2, lambda: self.rpad(dc, 1.2, 0.95), 2.20)
             dc.pop()
             dc.right(180)
-        [p.setname(nm) for p, nm in zip(self.pads, ["", "GND", "CLK", "VDD"])]
+        [p.set_name(nm) for p, nm in zip(self.pads, ["", "GND", "CLK", "VDD"])]

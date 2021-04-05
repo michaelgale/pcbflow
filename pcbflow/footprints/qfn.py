@@ -20,7 +20,7 @@ class QFN64(Part):
                 dc.left(90)
                 dc.forward(j)
                 dc.square(g - 0.5)
-                self.pad(dc)
+                self.smd_pad(dc)
                 dc.via("GND")
                 dc.pop()
         self.pads = self.pads[:1]

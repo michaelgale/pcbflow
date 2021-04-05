@@ -16,9 +16,9 @@ class Discrete2(Part):
     def fanout(self, pad1=None, pad2=None):
         layer = "GTL" if self.side == "top" else "GBL"
         if pad1 is not None:
-            self.pads[0].setname(pad1).w("o").wvia(layer=layer, net=pad1)
+            self.pads[0].set_name(pad1).w("o").wvia(layer=layer, net=pad1)
         if pad2 is not None:
-            self.pads[1].setname(pad2).w("o").wvia(layer=layer, net=pad2)
+            self.pads[1].set_name(pad2).w("o").wvia(layer=layer, net=pad2)
 
 
 class C0402(Discrete2):
@@ -32,7 +32,7 @@ class C0402(Discrete2):
             dc.right(d)
             dc.forward(1.30 / 2)
             dc.rect(0.8, 0.8)
-            self.pad(dc)
+            self.smd_pad(dc)
             dc.pop()
 
         # Silk outline of the package
@@ -48,7 +48,7 @@ class C0402(Discrete2):
 
     def escape_2layer(self):
         # escape for 2-layer board (VCC on GTL, GND on GBL)
-        self.pads[0].setname("VCC").w("o f 0.5").wire()
+        self.pads[0].set_name("VCC").w("o f 0.5").wire()
         self.pads[1].w("o -")
 
 
@@ -63,7 +63,7 @@ class C0603(Discrete2):
             dc.right(d)
             dc.forward(1.70 / 2)
             dc.rect(1.0, 1.0)
-            self.pad(dc)
+            self.smd_pad(dc)
             dc.pop()
 
         # Silk outline of the package
@@ -89,7 +89,7 @@ class C1206(Discrete2):
             dc.right(d)
             dc.forward(3.40 / 2)
             dc.rect(2.0, 2.0)
-            self.pad(dc)
+            self.smd_pad(dc)
             dc.pop()
 
         # Silk outline of the package

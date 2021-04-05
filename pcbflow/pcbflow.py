@@ -30,21 +30,70 @@ class Board:
 
         self.counters = defaultdict(lambda: 0)
         self.nets = []
+        self.config_default_layers()
 
-        layers = [
-            ("GTP", "Top Paste", "Paste,Top"),
-            ("GTO", "Top Silkscreen", "Legend,Top"),
-            ("GTS", "Top Solder Mask", "Soldermask,Top"),
-            ("GTL", "Top Copper", "Copper,L1,Top"),
-            ("GP2", "Inner Copper Layer 2", "Copper,L2,Inr"),
-            ("GP3", "Inner Copper Layer 3", "Copper,L3,Inr"),
-            ("GBL", "Bottom Copper", "Copper,L4,Bot"),
-            ("GBS", "Bottom Solder Mask", "Soldermask,Bot"),
-            ("GBO", "Bottom Silkscreen", "Legend,Bot"),
-            ("GBP", "Bottom Paste", "Paste,Bot"),
-        ]
-        self.layers = {id: Layer(desc, fn) for (id, desc, fn) in layers}
-        self.layers["GML"] = OutlineLayer("Mechanical")
+    def config_default_layers(self):
+        self.layers = {}
+        for k, v in DEFAULT_LAYERS.items():
+            self.layers[k] = Layer(**v)
+        self.layers["GML"] = OutlineLayer(desc="Mechanical", function="Profile,NP")
+        self.reorder_layer_stack()
+
+    def reorder_layer_stack(self):
+        z_order = 0
+        cu_order = 1
+        for layer in DEFAULT_LAYER_ORDER:
+            if layer in self.layers:
+                self.layers[layer].z_order = z_order
+                if self.layers[layer].is_copper:
+                    fn = "Copper,L%d," % (cu_order)
+                    if layer == "GTL":
+                        desc = "Top Copper"
+                        fn += "Top"
+                    elif layer == "GBL":
+                        desc = "Bottom Copper"
+                        fn += "Bot"
+                    else:
+                        desc = "Inner Copper Layer %d" % (cu_order)
+                        fn += "Inr"
+                    self.layers[layer].desc = desc
+                    self.layers[layer].function = fn
+                    cu_order += 1
+                z_order += 1
+
+    def get_copper_layers(self):
+        layers = []
+        for k in self.layers:
+            if self.layers[k].is_copper:
+                layers.append(k)
+        return layers
+
+    def add_inner_copper_layer(self):
+        cu_layers = self.get_copper_layers()
+        n_inner = len(cu_layers)
+        new_layer = "GP%d" % (n_inner)
+        self.layers[new_layer] = Layer(is_copper=True, is_inner=True)
+        self.reorder_layer_stack()
+
+    def get_smd_pad_layers(self, side="top"):
+        layers = []
+        for k, v in self.layers.items():
+            if side.title()[:3] in v.function and not v.is_silk:
+                layers.append(k)
+        return layers
+
+    def get_pad_stack_layers(self):
+        layers = []
+        layers.extend(self.get_copper_layers())
+        layers.extend(self.get_smd_pad_layers(side="top"))
+        layers.extend(self.get_smd_pad_layers(side="bottom"))
+        layers = list(set(layers))
+        return layers
+
+    def get_silk_layer(self, side="top"):
+        for k, v in self.layers.items():
+            if v.is_silk and side.title()[:3] in v.function:
+                return k
 
     def parts_str(self):
         s = []
@@ -53,19 +102,30 @@ class Board:
                 s.append(str(p))
         return "\n".join(s)
 
+    def layer_stack_str(self):
+        s = []
+        for layer in DEFAULT_LAYER_ORDER:
+            if layer in self.layers:
+                s.append("Layer %s : %s" % (layer, str(self.layers[layer])))
+        return "\n".join(s)
+
     def layer_net_str(self):
         s = []
-        for k, v in self.layers.items():
-            if isinstance(v, Layer):
-                ld = defaultdict(int)
-                sd = []
-                for net in v.polys:
-                    if net[0] is not None:
-                        ld[net[0]] += 1
-                for kd, vd in ld.items():
-                    sd.append("%s: %d " % (kd, vd))
-                if len(sd) > 0:
-                    s.append("Layer %s [%-20s] nets: %s" % (k, v.desc, "".join(sd)))
+        for layer in DEFAULT_LAYER_ORDER:
+            if layer in self.layers:
+                if self.layers[layer].is_copper:
+                    ld = defaultdict(int)
+                    sd = []
+                    for net in self.layers[layer].polys:
+                        if net[0] is not None:
+                            ld[net[0]] += 1
+                    for kd, vd in ld.items():
+                        sd.append("%s: %d " % (kd, vd))
+                    if len(sd) > 0:
+                        s.append(
+                            "Layer %s : %-16s Nets: %s"
+                            % (layer, self.layers[layer].function, "".join(sd))
+                        )
         return "\n".join(s)
 
     def boundary(self, r=0):
@@ -186,13 +246,8 @@ class Board:
         g = sa.translate(so.unary_union(g), x - 0.5 * w * s, y - 0.5 * h * s).buffer(
             0.001
         )
-        lyr = layer
-        if side.lower() == "top":
-            lyr = "GTO" if layer is None else layer
-            self.layers[lyr].add(g)
-        else:
-            lyr = "GBO" if layer is None else layer
-            self.layers[lyr].add(g)
+        lyr = layer if layer is not None else self.get_silk_layer(side)
+        self.layers[lyr].add(g)
         if keepout_box:
             self.add_keepout_to_obj(g, layer=lyr)
         if soldermask_box:
@@ -205,6 +260,9 @@ class Board:
         return Drawf(self, xy, d)
 
     def fill_layer(self, layer, netname):
+        if layer not in self.layers:
+            print("Warning: Cannot fill layer %s; not in layer stack." % (layer))
+            return
         la = self.layers[layer]
         kol = so.unary_union(la.keepouts)
         ko = kol.union(so.unary_union(self.keepouts))

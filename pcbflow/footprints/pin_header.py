@@ -1,4 +1,3 @@
-
 #! /usr/bin/env python3
 #
 # Pin header parts
@@ -14,21 +13,23 @@ class PTH(Part):
         dc.board.add_drill(dc.xy, self.r)
         p = dc.copy()
         p.n_agon(self.r, 8)
-        p.contact()
+        p.pin_pad()
 
         p = dc.copy()
         p.part = self.id
         self.pads.append(p)
 
+
 class SIL(PTH):
-    family  = "J"
+    family = "J"
     pitch = INCHES(0.1)
+
     def place(self, dc):
         self.N = int(self.val)
         # self.chamfered(dc, T + 2, T * self.N + 2)
         dc.forward(((self.N - 1) / 2) * self.pitch).left(180)
         self.train(dc, self.N, lambda: self.gh(dc), self.pitch)
-        [p.setname(str(i + 1)) for (i, p) in enumerate(self.pads)]
+        [p.set_name(str(i + 1)) for (i, p) in enumerate(self.pads)]
 
 
 class SIL_2mm(SIL):
@@ -39,6 +40,7 @@ class SIL_2mm(SIL):
 class DIP(PTH):
     family = "U"
     pitch = INCHES(0.1)
+
     def place(self, dc):
         pn = (self.N // 4 - 1) + 0.5
         self.chamfered(dc, 6.2, (self.N // 2 * self.pitch) + 0.2)
@@ -50,7 +52,7 @@ class DIP(PTH):
             dc.right(180)
 
     def escape(self):
-        ii = cu.inches(.1) / 2
+        ii = cu.inches(0.1) / 2
         q = math.sqrt((ii ** 2) + (ii ** 2))
         for p in self.pads[:4]:
             p.w("l 45").forward(q).left(45).forward(1)
@@ -60,17 +62,22 @@ class DIP(PTH):
         cu.extend2(oo)
         return oo
 
+
 class DIP8(DIP):
     N = 8
+
 
 class DIP14(DIP):
     N = 14
 
+
 class DIP16(DIP):
     N = 16
+
 
 class DIP18(DIP):
     N = 18
 
+
 class DIP20(DIP):
-    N = 20      
+    N = 20

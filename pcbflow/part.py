@@ -153,7 +153,7 @@ class Part:
             )
         dc.pop()
 
-    def pad(self, dc):
+    def smd_pad(self, dc):
         for n in self._layers():
             if n.endswith("S"):
                 g = dc.poly().buffer(self.board.drc.soldermask_margin)
@@ -167,7 +167,7 @@ class Part:
     def rpad(self, dc, w, h):
         dc.right(90)
         dc.rect(w, h)
-        self.pad(dc)
+        self.smd_pad(dc)
         dc.left(90)
 
     def roundpad(self, dc, d):

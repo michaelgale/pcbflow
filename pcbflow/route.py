@@ -200,7 +200,7 @@ class Route(Turtle):
         self.forward(d)
         for i, t in enumerate(self.tt):
             t.forward(i * a).right(th_d).forward(d).wire()
-            t.via().setlayer(dst)
+            t.via().set_layer(dst)
             t.forward(d).left(th_d).forward((len(self.tt) - 1 - i) * a)
         self.forward(d)
         self.wire()

@@ -13,10 +13,10 @@ class SOT23(Part):
     def place(self, dc):
         self.chamfered(dc, 3.0, 1.4)
         (w, h) = (1.0, 1.4)
-        self.pad(dc.copy().goxy(-0.95, -1.1).rect(w, h))
-        self.pad(dc.copy().goxy(0.95, -1.1).rect(w, h))
-        self.pad(dc.copy().goxy(0.00, 1.1).rect(w, h))
-        [p.setname(nm) for p, nm in zip(self.pads, ("1", "2", "3"))]
+        self.smd_pad(dc.copy().goxy(-0.95, -1.1).rect(w, h))
+        self.smd_pad(dc.copy().goxy(0.95, -1.1).rect(w, h))
+        self.smd_pad(dc.copy().goxy(0.00, 1.1).rect(w, h))
+        [p.set_name(nm) for p, nm in zip(self.pads, ("1", "2", "3"))]
 
 
 class SOT223(Part):
@@ -28,7 +28,7 @@ class SOT223(Part):
         dc.push()
         dc.forward(6.2 / 2)
         dc.rect(3.6, 2.2)
-        self.pad(dc)
+        self.smd_pad(dc)
         dc.pop()
 
         dc.push()
@@ -57,7 +57,7 @@ class SOT764(Part):
 
         def p():
             dc.rect(0.240, 0.950)
-            self.pad(dc)
+            self.smd_pad(dc)
 
         for i in range(2):
             dc.push()

@@ -9,35 +9,128 @@ import shapely.ops as so
 
 from pcbflow import *
 
+DEFAULT_LAYER_ORDER = [
+    "GML",
+    "GTP",
+    "GTO",
+    "GTS",
+    "GTL",
+    "GP2",
+    "GP3",
+    "GP4",
+    "GP5",
+    "GP6",
+    "GBL",
+    "GBS",
+    "GBO",
+    "GBP",
+]
+
+DEFAULT_LAYERS = {
+    "GTP": {
+        "desc": "Top Paste",
+        "function": "Paste,Top",
+        "is_paste": True,
+        "z_order": 0,
+    },
+    "GTO": {
+        "desc": "Top Silkscreen",
+        "function": "Legend,Top",
+        "is_silk": True,
+        "z_order": 1,
+    },
+    "GTS": {
+        "desc": "Top Solder Mask",
+        "function": "Soldermask,Top",
+        "is_mask": True,
+        "z_order": 2,
+    },
+    "GTL": {
+        "desc": "Top Copper",
+        "function": "Copper,L1,Top",
+        "is_copper": True,
+        "z_order": 3,
+    },
+    "GBL": {
+        "desc": "Bottom Copper",
+        "function": "Copper,L2,Bot",
+        "is_copper": True,
+        "z_order": 4,
+    },
+    "GBS": {
+        "desc": "Bottom Solder Mask",
+        "function": "Soldermask,Bot",
+        "is_mask": True,
+        "z_order": 5,
+    },
+    "GBO": {
+        "desc": "Bottom Silkscreen",
+        "function": "Legend,Bot",
+        "is_silk": True,
+        "z_order": 6,
+    },
+    "GBP": {
+        "desc": "Bottom Paste",
+        "function": "Paste,Bot",
+        "is_paste": True,
+        "z_order": 7,
+    },
+}
+
 
 class Layer:
-    def __init__(self, desc, function):
+    def __init__(self, **kwargs):
         self.polys = []
-        self.desc = desc
-        self.function = function
+        self.desc = ""
+        self.function = ""
+        self.enabled = True
+        self.z_order = 0
+        self.is_silk = False
+        self.is_copper = False
+        self.is_mask = False
+        self.is_paste = False
+        self.is_inner = False
+        self.is_outline = False
         self.connected = []
-        self.p = None
         self.keepouts = []
+        self.preview_poly = None
+        for k, v in kwargs.items():
+            self.__dict__[k] = v
 
-    def add(self, o, nm=None):
-        self.polys.append((nm, o.simplify(0.001, preserve_topology=False)))
-        self.p = None
+    def __str__(self):
+        return (
+            "%-16s Order: %d Inner: %-5s Cu: %-5s Mask: %-5s Paste: %-5s Silk: %-5s Outline: %-5s"
+            % (
+                self.function,
+                self.z_order,
+                self.is_inner,
+                self.is_copper,
+                self.is_mask,
+                self.is_paste,
+                self.is_silk,
+                self.is_outline,
+            )
+        )
+
+    def add(self, obj, name=None):
+        self.polys.append((name, obj.simplify(0.001, preserve_topology=False)))
+        self.preview_poly = None
 
     def preview(self):
-        if self.p is None:
-            self.p = so.unary_union([p for (_, p) in self.polys])
-        return self.p
+        if self.preview_poly is None:
+            self.preview_poly = so.unary_union([p for (_, p) in self.polys])
+        return self.preview_poly
 
-    def paint(self, bg, include, r):
+    def paint(self, bg, include, clearance):
         # Return the intersection of bg with the current polylist
         # touching the included, avoiding the others by distance r
         ingrp = so.unary_union([bg] + [o for (nm, o) in self.polys if nm == include])
         exgrp = so.unary_union([o for (nm, o) in self.polys if nm != include])
-        self.powered = so.unary_union(ingrp).difference(exgrp.buffer(r))
+        self.powered = so.unary_union(ingrp).difference(exgrp.buffer(clearance))
         return exgrp.union(self.powered)
 
-    def fill(self, bg, include, d):
-        self.polys = [("filled", self.paint(bg, include, d))]
+    def fill(self, bg, include, clearance):
+        self.polys = [("filled", self.paint(bg, include, clearance))]
 
     def save(self, f):
         surface = self.preview()
@@ -58,7 +151,6 @@ class Layer:
                 y1 = max([y for (x, y) in po.exterior.coords])
                 xm = (x0 + x1) / 2
                 eps = 0.0
-                # eps = 0.000
                 renderpoly(g, po.intersection(sg.box(x0, y0, xm + eps, y1)))
                 renderpoly(g, po.intersection(sg.box(xm - eps, y0, x1, y1)))
 
@@ -93,10 +185,11 @@ class Layer:
             [renderpoly(po) for po in surface]
 
 
-class OutlineLayer:
-    def __init__(self, desc):
+class OutlineLayer(Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.lines = []
-        self.desc = desc
+        self.is_outline = True
 
     def add(self, o):
         self.lines.append(o)

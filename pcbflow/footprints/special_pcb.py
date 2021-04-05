@@ -19,7 +19,7 @@ class Castellation(Part):
             p = dc.copy()
             p.part = self.id
             self.pads.append(p)
-            dc.contact()
+            dc.pin_pad()
             dc.push()
             dc.forward(0.375)
             dc.board.add_hole(dc.xy, 0.7)
@@ -67,7 +67,7 @@ class Castellation(Part):
         for p in self.pads:
             if p != self.pads[gnd]:
                 cnt["port"] += 1
-                p.setname("P" + str(cnt["port"]))
+                p.set_name("P" + str(cnt["port"]))
 
         a = group(self.pads[:gnd], -90)
         b = group(self.pads[gnd + 1 :], 90)
@@ -75,10 +75,10 @@ class Castellation(Part):
 
     def sidevia(self, dc, dst):
         assert dst in "-+."
-        dc.setwidth(0.6)
+        dc.set_width(0.6)
         for l in ("GTL", "GBL"):
             dc.push()
-            dc.setlayer(l)
+            dc.set_layer(l)
             dc.push()
             dc.w("f -0.3 r 90 f 0.4 " + dst)
             dc.pop()
@@ -88,7 +88,7 @@ class Castellation(Part):
     def escape1(self):
         pp = self.pads[::-1]
         names = "PGM TDI TDO TCK TMS".split()
-        [t.setname(n) for t, n in zip(pp, names)]
+        [t.set_name(n) for t, n in zip(pp, names)]
 
         for t in pp:
             dc = t.copy().w("i f 0.6")
@@ -111,7 +111,7 @@ class Castellation(Part):
         label(pp[2], "5V")
 
         for l in ("GTL", "GBL"):
-            pp[0].push().setlayer(l).setwidth(0.6).w(
+            pp[0].push().set_layer(l).set_width(0.6).w(
                 "f -0.3 r 90 f 0.5 + f 0.5 +"
             ).pop()
         self.sidevia(pp[1], "-")
@@ -120,7 +120,7 @@ class Castellation(Part):
     def escape3(self):
         pp = self.pads[::-1]
         names = "SDA SCL INT RST".split()
-        [t.setname(n) for t, n in zip(pp, names)]
+        [t.set_name(n) for t, n in zip(pp, names)]
 
         for t in pp:
             dc = t.copy().w("i f 0.6")

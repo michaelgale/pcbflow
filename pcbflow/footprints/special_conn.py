@@ -62,9 +62,9 @@ class HDMI(Part):
         board = self.board
         gnd = (1, 4, 7, 10, 13, 16)
         for g, p in zip(gnd, ["TMDS2", "TMDS1", "TMDS0", "TMDS_CLK"]):
-            self.pads[g].setname("GND")
-            self.pads[g - 1].setname(p + "_P")
-            self.pads[g + 1].setname(p + "_N")
+            self.pads[g].set_name("GND")
+            self.pads[g - 1].set_name(p + "_P")
+            self.pads[g + 1].set_name(p + "_N")
 
         for g in gnd:
             self.pads[g].w("i -")

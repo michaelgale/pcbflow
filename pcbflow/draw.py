@@ -66,27 +66,27 @@ class Draw(Turtle):
     def defaults(self):
         self.layer = "GTL"
 
-    def _layers(self, side):
-        if side == "top":
-            return ["GTL", "GTS", "GTP"]
-        else:
-            return ["GBL", "GBS", "GBP"]
+    # def _layers(self, side):
+    #     if side == "top":
+    #         return ["GTL", "GTS", "GTP"]
+    #     else:
+    #         return ["GBL", "GBS", "GBP"]
 
-    def _silklayer(self, side):
-        if side == "top":
-            return "GTO"
-        return "GBO"
+    # def _silklayer(self, side):
+    #     if side == "top":
+    #         return "GTO"
+    #     return "GBO"
 
-    def setname(self, nm):
-        self.name = nm
+    def set_name(self, name):
+        self.name = name
         return self
 
-    def setwidth(self, w):
-        self.width = w
+    def set_width(self, width):
+        self.width = width
         return self
 
-    def setlayer(self, l):
-        self.layer = l
+    def set_layer(self, layer):
+        self.layer = layer
         return self
 
     def newpath(self):
@@ -189,36 +189,27 @@ class Draw(Turtle):
         self.h = h  # used by inside, outside for pad escape
         return self
 
-    def mark(self):
-        self.board.layers["GTO"].add(sg.Point(self.xy).buffer(0.2))
-        self.push()
-        self.newpath()
-        self.forward(0.3)
-        self.silk()
-        self.pop()
-        return self
-
-    def n_agon(self, r, n):
+    def n_agon(self, radius, sides):
         # an n-agon approximating a circle radius r
-        ea = 360 / n
+        ea = 360 / sides
         self.push()
-        half_angle = math.pi / n
-        half_edge = r * math.tan(half_angle)
-        self.forward(r)
+        half_angle = math.pi / sides
+        half_edge = radius * math.tan(half_angle)
+        self.forward(radius)
         self.right(90)
 
         self.newpath()
-        for _ in range(n):
+        for _ in range(sides):
             self.forward(half_edge)
             self.right(ea)
             self.forward(half_edge)
         self.pop()
 
-    def thermal(self, d):
-        for i in range(4):
-            self.forward(d)
+    def thermal(self, length, spokes=4):
+        for i in range(spokes):
+            self.forward(length)
             self.right(180)
-            self.forward(d)
+            self.forward(length)
             self.right(90)
         return self
 
@@ -231,25 +222,27 @@ class Draw(Turtle):
         self.forward(self.h / 2)
         return self
 
-    def square(self, w):
-        self.rect(w, w)
+    def square(self, width):
+        self.rect(width, width)
 
     def poly(self):
         return sg.Polygon(self.path)
 
-    def pad(self):
+    def smd_pad(self, layer=None):
+        if layer is not None:
+            self.layer = layer
         g = self.poly()
         if self.layer == "GTL":
-            ly = ("GTL", "GTS", "GTP")
+            ly = self.board.get_smd_pad_layers(side="top")
         elif self.layer == "GBL":
-            ly = ("GBL", "GBS", "GBP")
+            ly = self.board.get_smd_pad_layers(side="bottom")
         else:
             assert False, "Attempt to create pad in layer " + self.layer
         for n in ly:
             self.board.layers[n].add(g, self.name)
 
-    def contact(self):
-        for n in ("GTL", "GTS", "GP2", "GP3", "GBL", "GBS"):
+    def pin_pad(self):
+        for n in self.board.get_pad_stack_layers():
             if n.endswith("S"):
                 g = sg.Polygon(self.path).buffer(self.board.drc.soldermask_margin)
             else:
@@ -258,13 +251,13 @@ class Draw(Turtle):
 
     def silk(self, side="top"):
         g = sg.LineString(self.path).buffer(self.board.drc.silk_width / 2)
-        self.board.layers[self._silklayer(side)].add(g)
+        self.board.layers[self.board.get_silk_layer(side)].add(g)
 
     def silko(self, side="top"):
         g = sg.LinearRing(self.path).buffer(self.board.drc.silk_width / 2)
         if side == "bottom":
             g = sa.scale(g, -1.0, 1.0)
-        self.board.layers[self._silklayer(side)].add(g)
+        self.board.layers[self.board.get_silk_layer(side)].add(g)
 
     def outline(self):
         g = sg.LinearRing(self.path)
@@ -276,7 +269,7 @@ class Draw(Turtle):
     def via(self, connect=None):
         dv = self.board.drc.via_drill / 2 + self.board.drc.via_annular_ring
         g = sg.Point(self.xy).buffer(dv)
-        for n in ("GTL", "GP2", "GP3", "GBL"):
+        for n in self.board.get_copper_layers():
             self.board.layers[n].add(g, connect)
         if connect is not None:
             self.board.layers[self.layer].connected.append(g)
@@ -326,7 +319,7 @@ class Draw(Turtle):
         brd.layers["GTS"].add(g3)
 
         g4 = g3.difference(g1.buffer(-0.05))
-        for l in ("GTL", "GP2", "GP3", "GBL"):
+        for l in self.board.get_copper_layers():
             brd.layers[l].add(g4)
 
         strut_x = sa.scale(g4.envelope, yfact=0.15)
@@ -340,21 +333,21 @@ class Draw(Turtle):
 
     def text(self, s, side="top"):
         (x, y) = self.xy
-        self.board.layers[self._silklayer(side)].add(
+        self.board.layers[self.board.get_silk_layer(side)].add(
             hershey.ctext(x, y, s, side=side, linewidth=self.board.drc.text_silk_width)
         )
         return self
 
     def ltext(self, s, side="top"):
         (x, y) = self.xy
-        self.board.layers[self._silklayer(side)].add(
+        self.board.layers[self.board.get_silk_layer(side)].add(
             hershey.ltext(x, y, s, side=side, linewidth=self.board.drc.text_silk_width)
         )
 
     def through(self):
         self.wire()
         dst = {"GTL": "GBL", "GBL": "GTL"}[self.layer]
-        self.via().setlayer(dst)
+        self.via().set_layer(dst)
         return self
 
 
