@@ -167,6 +167,9 @@ class Board:
         g = self.boundary(1.1 * sr).buffer(sr)
         self.layers["GTO"].add(g.buffer(0))
 
+    def add_part(self, xy, part, side="top"):
+        return part(self.DC(xy), side=side)
+
     def add_hole(self, xy, diameter):
         self.npth[diameter].append(xy)
         self.keepouts.append(

@@ -8,14 +8,14 @@ if __name__ == "__main__":
     brd = Board((50, 30))
     brd.via_track_width = MILS(24)
 
-    SOT23(brd.DC((10, 20)), side="top")
-    SOT223(brd.DC((20, 20)), side="top")
-    TSSOP14(brd.DC((30, 20)), side="top")
-    QFN64(brd.DC((35, 10)), side="top")
+    brd.add_part((10, 20), SOT23, side="top")
+    brd.add_part((20, 20), SOT223, side="top")
+    brd.add_part((30, 20), TSSOP14, side="top")
+    brd.add_part((35, 10), QFN64, side="top")
 
-    SOT23(brd.DC((5, 10)), side="bottom")
-    SOT223(brd.DC((15, 10)), side="bottom")
-    SOIC8(brd.DC((25, 10)), side="bottom")
+    brd.add_part((5, 10), SOT23, side="bottom")
+    brd.add_part((15, 10), SOT223, side="bottom")
+    brd.add_part((25, 10), SOIC8, side="bottom")
 
     brd.outline()
     brd.fill_layer("GTL", "GND")
