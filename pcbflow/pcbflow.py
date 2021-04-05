@@ -449,8 +449,6 @@ class Board:
 
         show = [po for po in self.layers["GTL"].p if po.intersects(hot_vcc)]
 
-        # self.layers['GTP'].p = so.unary_union(show)
-
 
 def extend(dst, traces):
     # extend parallel traces so that they are all level with dst

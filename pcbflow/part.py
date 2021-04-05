@@ -121,9 +121,6 @@ class Part:
         )
 
     def chamfered(self, dc, w, h, drawid=True, idoffset=(0, 0)):
-        # Outline in top silk, chamfer indicates top-left
-        # ID next to chamfer
-
         nt = 0.4
         dc.push()
         dc.forward(h / 2)

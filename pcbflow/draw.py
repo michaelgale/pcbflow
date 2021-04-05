@@ -249,8 +249,11 @@ class Draw(Turtle):
             self.board.layers[n].add(g, self.name)
 
     def contact(self):
-        g = sg.Polygon(self.path)
-        for n in ("GTL", "GTS", "GBL", "GBS"):
+        for n in ("GTL", "GTS", "GP2", "GP3", "GBL", "GBS"):
+            if n.endswith("S"):
+                g = sg.Polygon(self.path).buffer(self.board.drc.soldermask_margin)
+            else:
+                g = sg.Polygon(self.path)
             self.board.layers[n].add(g, self.name)
 
     def silk(self, side="top"):
@@ -259,6 +262,8 @@ class Draw(Turtle):
 
     def silko(self, side="top"):
         g = sg.LinearRing(self.path).buffer(self.board.drc.silk_width / 2)
+        if side == "bottom":
+            g = sa.scale(g, -1.0, 1.0)
         self.board.layers[self._silklayer(side)].add(g)
 
     def outline(self):

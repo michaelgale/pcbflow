@@ -21,7 +21,7 @@ class QFN64(Part):
                 dc.forward(j)
                 dc.square(g - 0.5)
                 self.pad(dc)
-                dc.via("GP2")
+                dc.via("GND")
                 dc.pop()
         self.pads = self.pads[:1]
 

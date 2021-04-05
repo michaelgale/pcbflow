@@ -19,8 +19,10 @@ if __name__ == "__main__":
 
     brd.outline()
     brd.fill_layer("GTL", "GND")
-    brd.fill_layer("GBL", "GND")
-    print(brd.parts_str())
-    print(brd.nets_str())
+    brd.fill_layer("GP2", "GND")
+    brd.fill_layer("GBL", "VCC")
 
     brd.save("%s" % (__file__[:-3]))
+
+    print(brd.parts_str())
+    print(brd.layer_net_str())

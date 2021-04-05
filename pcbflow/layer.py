@@ -10,7 +10,6 @@ import shapely.ops as so
 from pcbflow import *
 
 
-
 class Layer:
     def __init__(self, desc, function):
         self.polys = []
