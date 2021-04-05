@@ -17,6 +17,21 @@ import math
 from pcbflow import *
 
 
+def pretty_parts(nms):
+    f = nms[0][0]
+    nn = [int(nm[1:]) for nm in nms]
+    ni = []
+    while nn:
+        seq = [i for (i, j) in zip(nn, range(nn[0], 9999)) if (i == j)]
+        if len(seq) > 2:
+            ni.append("{0}{1}-{2}".format(f, nn[0], nn[len(seq) - 1]))
+            nn = nn[len(seq) :]
+        else:
+            ni.append("{0}{1}".format(f, nn[0]))
+            nn = nn[1:]
+    return ",".join(ni)
+
+
 class Part:
     mfr = ""
     footprint = ""
@@ -35,6 +50,21 @@ class Part:
         self.place(dc)
         if source is not None:
             self.source = source
+
+    def __str__(self):
+        s = []
+        sp = ""
+        if len(self.pads) > 0:
+            sp = []
+            for i, p in enumerate(self.pads):
+                name = "-" if p.name is None else p.name
+                sp.append("%d: %s" % (i + 1, name))
+            sp = " ".join(sp)
+        s.append(
+            "Part: %s  %-6s (%6.2f, %6.2f) / %3.0f deg %2d pads %s"
+            % (self.id, self.side, *self.center.xy, self.center.dir, len(self.pads), sp)
+        )
+        return "\n".join(s)
 
     def _layers(self):
         if self.side == "top":
@@ -58,8 +88,8 @@ class Part:
     def label(self, dc, angle=0):
         (x, y) = dc.xy
         gt = hershey.ctext(
-                x, y, self.id, side=self.side, linewidth=self.board.drc.text_silk_width
-            )
+            x, y, self.id, side=self.side, linewidth=self.board.drc.text_silk_width
+        )
         gt = sa.rotate(gt, angle)
         dc.board.layers[self._silklayer()].add(gt)
 

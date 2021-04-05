@@ -5,15 +5,15 @@ from pcbflow import *
 
 if __name__ == "__main__":
     brd = Board((40, 30))
-    holexy = [
+    holes = [
         (5, 5),
         (5, 25),
         (35, 5),
         (35, 25),
     ]
-    for x, y in holexy:
-        brd.add_hole((x, y), 2.0, 5)
+    for hole in holes:
+        brd.add_hole(hole, 2.0)
     brd.outline()
-    brd.fill_any("GTL", "GND")
-    brd.fill_any("GBL", "GND")
+    brd.fill_layer("GTL", "GND")
+    brd.fill_layer("GBL", "GND")
     brd.save("%s" % (__file__[:-3]))

@@ -33,7 +33,9 @@ from .excellon import excellon
 from .svgout import svg_write
 from .hershey import text, ltext, ctext
 from .drc import DRC
-from .part import Part
+from .part import Part, pretty_parts
 from .footprints import *
 from .eagle import LibraryPart
+from .layer import Layer, OutlineLayer
+from .draw import Turtle, Draw, Drawf
 from .pcbflow import *

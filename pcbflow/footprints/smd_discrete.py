@@ -7,11 +7,19 @@ from pcbflow import *
 
 
 class Discrete2(Part):
+        
     def escape(self, l0, l1):
         # Connections to GND and VCC
         [p.outside() for p in self.pads]
         self.pads[0].wvia(l0)
         self.pads[1].wvia(l1)
+
+    def fanout(self, pad0=None, pad1=None):
+        layer = "GTL" if self.side == "top" else "GBL"
+        if pad0 is not None:
+            self.pads[0].setname(pad0).w("o").wvia(layer=layer, net=pad0)
+        if pad1 is not None:
+            self.pads[1].setname(pad1).w("o").wvia(layer=layer, net=pad1)
 
 
 class C0402(Discrete2):

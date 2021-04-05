@@ -18,6 +18,9 @@ if __name__ == "__main__":
     SOIC8(brd.DC((25, 10)), side="bottom")
 
     brd.outline()
-    brd.fill_any("GTL", "GND")
-    brd.fill_any("GBL", "GND")
+    brd.fill_layer("GTL", "GND")
+    brd.fill_layer("GBL", "GND")
+    print(brd.parts_str())
+    print(brd.nets_str())
+
     brd.save("%s" % (__file__[:-3]))

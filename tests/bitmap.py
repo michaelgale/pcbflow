@@ -11,6 +11,6 @@ if __name__ == "__main__":
     brd.add_bitmap((25, 20), "fxlogo.png", scale=0.5, layer="GTL", keepout_box=True)
     brd.add_bitmap((30, 20), "fxlogo.png", side="bottom", layer="GBL", scale=0.33)
     brd.outline()
-    brd.fill_any("GTL", "GND")
-    brd.fill_any("GBL", "GND")
+    brd.fill_layer("GTL", "GND")
+    brd.fill_layer("GBL", "GND")
     brd.save("%s" % (__file__[:-3]))
