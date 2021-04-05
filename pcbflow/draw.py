@@ -61,21 +61,18 @@ class Draw(Turtle):
         self.width = board.drc.trace_width
         self.h = None
         self.length = 0
+        self.side = "top"
         self.defaults()
 
     def defaults(self):
         self.layer = "GTL"
 
-    # def _layers(self, side):
-    #     if side == "top":
-    #         return ["GTL", "GTS", "GTP"]
-    #     else:
-    #         return ["GBL", "GBS", "GBP"]
-
-    # def _silklayer(self, side):
-    #     if side == "top":
-    #         return "GTO"
-    #     return "GBO"
+    def is_bottom_layer(self):
+        if self.layer in ["GBS", "GBO", "GBL", "GBP"]:
+            return True
+        if self.side == "bottom":
+            return True
+        return False
 
     def set_name(self, name):
         self.name = name
@@ -119,11 +116,17 @@ class Draw(Turtle):
         return self
 
     def left(self, d):
-        self.dir = (self.dir - d) % 360
+        if self.is_bottom_layer():
+            self.dir = (self.dir + d) % 360
+        else:
+            self.dir = (self.dir - d) % 360
         return self
 
     def right(self, d):
-        self.dir = (self.dir + d) % 360
+        if self.is_bottom_layer():
+            self.dir = (self.dir - d) % 360
+        else:
+            self.dir = (self.dir + d) % 360
         return self
 
     def approach(self, d, other):
@@ -150,7 +153,10 @@ class Draw(Turtle):
 
     def goxy(self, x, y):
         self.right(90)
-        self.forward(x)
+        if self.is_bottom_layer():
+            self.forward(-x)
+        else:
+            self.forward(x)
         self.left(90)
         self.forward(y)
         return self
@@ -233,31 +239,25 @@ class Draw(Turtle):
             self.layer = layer
         g = self.poly()
         if self.layer == "GTL":
-            ly = self.board.get_smd_pad_layers(side="top")
+            layers = self.board.get_smd_pad_layers(side="top")
         elif self.layer == "GBL":
-            ly = self.board.get_smd_pad_layers(side="bottom")
+            layers = self.board.get_smd_pad_layers(side="bottom")
         else:
             assert False, "Attempt to create pad in layer " + self.layer
-        for n in ly:
-            self.board.layers[n].add(g, self.name)
+        for lyr in layers:
+            lyr.add(g, self.name)
 
     def pin_pad(self):
-        for n in self.board.get_pad_stack_layers():
-            if n.endswith("S"):
+        for layer in self.board.get_pad_stack_layers():
+            if layer.is_mask:
                 g = sg.Polygon(self.path).buffer(self.board.drc.soldermask_margin)
             else:
                 g = sg.Polygon(self.path)
-            self.board.layers[n].add(g, self.name)
+            layer.add(g, self.name)
 
     def silk(self, side="top"):
         g = sg.LineString(self.path).buffer(self.board.drc.silk_width / 2)
-        self.board.layers[self.board.get_silk_layer(side)].add(g)
-
-    def silko(self, side="top"):
-        g = sg.LinearRing(self.path).buffer(self.board.drc.silk_width / 2)
-        if side == "bottom":
-            g = sa.scale(g, -1.0, 1.0)
-        self.board.layers[self.board.get_silk_layer(side)].add(g)
+        self.board.get_silk_layer(side).add(g)
 
     def outline(self):
         g = sg.LinearRing(self.path)
@@ -269,13 +269,13 @@ class Draw(Turtle):
     def via(self, connect=None):
         dv = self.board.drc.via_drill / 2 + self.board.drc.via_annular_ring
         g = sg.Point(self.xy).buffer(dv)
-        for n in self.board.get_copper_layers():
-            self.board.layers[n].add(g, connect)
+        for layer in self.board.get_copper_layers():
+            layer.add(g, connect)
         if connect is not None:
             self.board.layers[self.layer].connected.append(g)
         self.board.add_drill(self.xy, self.board.drc.via_drill)
-        gm = sg.Point(self.xy).buffer(dv + self.board.drc.soldermask_margin)
         if self.board.drc.mask_vias:
+            gm = sg.Point(self.xy).buffer(dv + self.board.drc.soldermask_margin)
             self.board.layers["GTS"].add(gm)
             self.board.layers["GBS"].add(gm)
         self.newpath()
@@ -298,9 +298,8 @@ class Draw(Turtle):
         return self
 
     def wvia(self, layer, net=None):
-        b = self.board
-        self.forward(b.drc.clearance + b.drc.via_drill)
-        self.wire(width=b.drc.via_track_width, layer=layer)
+        self.forward(self.board.drc.clearance + self.board.drc.via_drill)
+        self.wire(width=self.board.drc.via_track_width, layer=layer)
         self.via(net)
 
     def fan(self, l, dst):
@@ -309,19 +308,14 @@ class Draw(Turtle):
 
     def platedslot(self, buf):
         brd = self.board
-
         g1 = sg.LineString(self.path).buffer(buf)
-
         g2 = sg.LinearRing(g1.exterior.coords)
         brd.layers["GML"].add(g2)
-
         g3 = g1.buffer(0.3)
         brd.layers["GTS"].add(g3)
-
         g4 = g3.difference(g1.buffer(-0.05))
         for l in self.board.get_copper_layers():
             brd.layers[l].add(g4)
-
         strut_x = sa.scale(g4.envelope, yfact=0.15)
         strut_y = sa.scale(g4.envelope, xfact=0.15)
         struts = strut_x.union(strut_y)
@@ -331,18 +325,21 @@ class Draw(Turtle):
         self.path.append(other.xy)
         return self.wire()
 
-    def text(self, s, side="top"):
+    def _text(self, s, side, justify="centre"):
         (x, y) = self.xy
-        self.board.layers[self.board.get_silk_layer(side)].add(
-            hershey.ctext(x, y, s, side=side, linewidth=self.board.drc.text_silk_width)
-        )
+        layer = self.board.get_silk_layer(side)
+        linewidth = self.board.drc.text_silk_width
+        if justify == "left":
+            layer.add(hershey.ltext(x, y, s, side=side, linewidth=linewidth))
+        else:
+            layer.add(hershey.ctext(x, y, s, side=side, linewidth=linewidth))
         return self
 
+    def text(self, s, side="top"):
+        return self._text(s, side, justify="centre")
+
     def ltext(self, s, side="top"):
-        (x, y) = self.xy
-        self.board.layers[self.board.get_silk_layer(side)].add(
-            hershey.ltext(x, y, s, side=side, linewidth=self.board.drc.text_silk_width)
-        )
+        return self._text(s, side, justify="left")
 
     def through(self):
         self.wire()
@@ -351,15 +348,15 @@ class Draw(Turtle):
         return self
 
 
-class Drawf(Draw):
-    def defaults(self):
-        self.layer = "GBL"
+# class Drawf(Draw):
+#     def defaults(self):
+#         self.layer = "GBL"
 
-    def left(self, a):
-        return Draw.right(self, a)
+#     def left(self, a):
+#         return Draw.right(self, a)
 
-    def right(self, a):
-        return Draw.left(self, a)
+#     def right(self, a):
+#         return Draw.left(self, a)
 
-    def goxy(self, x, y):
-        return Draw.goxy(-x, y)
+#     def goxy(self, x, y):
+#         return Draw.goxy(-x, y)

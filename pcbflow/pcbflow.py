@@ -61,11 +61,14 @@ class Board:
                     cu_order += 1
                 z_order += 1
 
-    def get_copper_layers(self):
+    def get_copper_layers(self, as_names=False):
         layers = []
         for k in self.layers:
             if self.layers[k].is_copper:
-                layers.append(k)
+                if as_names:
+                    layers.append(k)
+                else:
+                    layers.append(self.layers[k])
         return layers
 
     def add_inner_copper_layer(self):
@@ -75,25 +78,36 @@ class Board:
         self.layers[new_layer] = Layer(is_copper=True, is_inner=True)
         self.reorder_layer_stack()
 
-    def get_smd_pad_layers(self, side="top"):
+    def get_smd_pad_layers(self, side="top", as_names=False, ignore_paste=False):
         layers = []
         for k, v in self.layers.items():
             if side.title()[:3] in v.function and not v.is_silk:
-                layers.append(k)
+                if ignore_paste and v.is_paste:
+                    pass
+                elif as_names:
+                    layers.append(k)
+                else:
+                    layers.append(self.layers[k])
         return layers
 
-    def get_pad_stack_layers(self):
+    def get_pad_stack_layers(self, as_names=False):
         layers = []
-        layers.extend(self.get_copper_layers())
-        layers.extend(self.get_smd_pad_layers(side="top"))
-        layers.extend(self.get_smd_pad_layers(side="bottom"))
+        layers.extend(self.get_copper_layers(as_names=as_names))
+        layers.extend(
+            self.get_smd_pad_layers(side="top", as_names=as_names, ignore_paste=True)
+        )
+        layers.extend(
+            self.get_smd_pad_layers(side="bottom", as_names=as_names, ignore_paste=True)
+        )
         layers = list(set(layers))
         return layers
 
-    def get_silk_layer(self, side="top"):
+    def get_silk_layer(self, side="top", as_name=False):
         for k, v in self.layers.items():
             if v.is_silk and side.title()[:3] in v.function:
-                return k
+                if as_name:
+                    return k
+                return self.layers[k]
 
     def parts_str(self):
         s = []
@@ -246,7 +260,7 @@ class Board:
         g = sa.translate(so.unary_union(g), x - 0.5 * w * s, y - 0.5 * h * s).buffer(
             0.001
         )
-        lyr = layer if layer is not None else self.get_silk_layer(side)
+        lyr = layer if layer is not None else self.get_silk_layer(side, as_name=True)
         self.layers[lyr].add(g)
         if keepout_box:
             self.add_keepout_to_obj(g, layer=lyr)

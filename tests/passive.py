@@ -6,6 +6,7 @@ from pcbflow import *
 
 if __name__ == "__main__":
     brd = Board((40, 30))
+    brd.add_inner_copper_layer()
     brd.via_track_width = MILS(24)
 
     C0603(brd.DC((20, 20)).right(90), "0.1 uF", side="top").fanout(None, "VCC")
@@ -33,9 +34,6 @@ if __name__ == "__main__":
     brd.fill_layer("GP2", "VDD")
     brd.fill_layer("GBL", "VCC")
     print(brd.layer_stack_str())
-    brd.add_inner_copper_layer()
-    print(brd.layer_stack_str())
-    brd.fill_layer("GP2", "VDD")
     print(brd.parts_str())
     print(brd.layer_net_str())
     brd.save("%s" % (__file__[:-3]))

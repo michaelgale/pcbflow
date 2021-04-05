@@ -37,5 +37,5 @@ from .part import Part, pretty_parts
 from .footprints import *
 from .eagle import LibraryPart
 from .layer import Layer, OutlineLayer, DEFAULT_LAYERS, DEFAULT_LAYER_ORDER
-from .draw import Turtle, Draw, Drawf
+from .draw import Turtle, Draw
 from .pcbflow import *

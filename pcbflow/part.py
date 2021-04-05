@@ -42,6 +42,7 @@ class Part:
     def __init__(self, dc, val=None, source=None, side="top"):
         self.id = dc.board.assign(self)
         self.side = side.lower()
+        dc.side = self.side
         if val is not None:
             self.val = val
         self.pads = []
@@ -66,42 +67,31 @@ class Part:
         )
         return "\n".join(s)
 
-    def _layers(self):
-        if self.side == "top":
-            return ["GTL", "GTS", "GTP"]
-        else:
-            return ["GBL", "GBS", "GBP"]
-
-    def _silklayer(self):
-        if self.side == "top":
-            return "GTO"
-        return "GBO"
-
     def text(self, dc, s):
         (x, y) = dc.xy
-        dc.board.layers[self._silklayer()].add(
+        dc.board.get_silk_layer(self.side).add(
             hershey.ctext(
-                x, y, s, side=self.side, linewidth=self.board.drc.text_silk_width
+                x, y, s, side=self.side, linewidth=dc.board.drc.text_silk_width
             )
         )
 
     def label(self, dc, angle=0):
         (x, y) = dc.xy
         gt = hershey.ctext(
-            x, y, self.id, side=self.side, linewidth=self.board.drc.text_silk_width
+            x, y, self.id, side=self.side, linewidth=dc.board.drc.text_silk_width
         )
         gt = sa.rotate(gt, angle)
-        dc.board.layers[self._silklayer()].add(gt)
+        dc.board.get_silk_layer(self.side).add(gt)
 
     def minilabel(self, dc, s):
         dc.push()
         dc.rect(0.7, 0.7)
-        dc.silko(side=self.side)
+        dc.silk(side=self.side)
         dc.w("r 180 f 1.5")
         (x, y) = dc.xy
-        dc.board.layers[self._silklayer()].add(
+        dc.board.get_silk_layer(self.side).add(
             hershey.ctext(
-                x, y, s, side=self.side, linewidth=self.board.drc.text_silk_width
+                x, y, s, side=self.side, linewidth=dc.board.drc.text_silk_width
             )
         )
         dc.pop()
@@ -109,14 +99,14 @@ class Part:
 
     def notate(self, dc, s):
         (x, y) = dc.xy
-        dc.board.layers[self._silklayer()].add(
+        dc.board.get_silk_layer(self.side).add(
             hershey.text(
                 x,
                 y,
                 s,
                 scale=0.1,
                 side=self.side,
-                linewidth=self.board.drc.text_silk_width,
+                linewidth=dc.board.drc.text_silk_width,
             )
         )
 
@@ -131,7 +121,7 @@ class Part:
         for e in (w - nt, h, w, h - nt):
             dc.forward(e)
             dc.right(90)
-        dc.silko(side=self.side)
+        dc.silk(side=self.side)
         dc.pop()
 
         dc.push()
@@ -142,24 +132,24 @@ class Part:
         dc.goxy(*idoffset)
         (x, y) = dc.xy
         if drawid:
-            dc.board.layers[self._silklayer()].add(
+            dc.board.get_silk_layer(self.side).add(
                 hershey.ctext(
                     x,
                     y,
                     self.id,
                     side=self.side,
-                    linewidth=self.board.drc.text_silk_width,
+                    linewidth=dc.board.drc.text_silk_width,
                 )
             )
         dc.pop()
 
     def smd_pad(self, dc):
-        for n in self._layers():
-            if n.endswith("S"):
-                g = dc.poly().buffer(self.board.drc.soldermask_margin)
+        for layer in dc.board.get_smd_pad_layers(self.side):
+            if layer.is_mask:
+                g = dc.poly().buffer(dc.board.drc.soldermask_margin)
             else:
                 g = dc.poly()
-            dc.board.layers[n].add(g)
+            layer.add(g)
         p = dc.copy()
         p.part = self.id
         self.pads.append(p)
@@ -173,8 +163,11 @@ class Part:
     def roundpad(self, dc, d):
         (dc.w, dc.h) = (d, d)
         g = sg.Point(dc.xy).buffer(d / 2)
-        for n in self._layers():
-            dc.board.layers[n].add(g)
+        for layer in dc.board.get_smd_pad_layers(self.side):
+            if layer.is_mask:
+                layer.add(g).buffer(dc.board.drc.soldermask_margin)
+            else:
+                layer.add(g)
         p = dc.copy()
         p.part = self.id
         self.pads.append(p)

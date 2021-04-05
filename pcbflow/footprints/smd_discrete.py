@@ -37,7 +37,7 @@ class C0402(Discrete2):
 
         # Silk outline of the package
         dc.rect(1.0, 0.5)
-        dc.silko(side=self.side)
+        dc.silk(side=self.side)
         dc.push()
         if dc.dir == 90:
             dc.forward(-1.2)
@@ -68,7 +68,7 @@ class C0603(Discrete2):
 
         # Silk outline of the package
         dc.rect(1.6, 0.8)
-        dc.silko(side=self.side)
+        dc.silk(side=self.side)
         dc.push()
         if dc.dir == 90:
             dc.forward(-1.3)
@@ -94,7 +94,7 @@ class C1206(Discrete2):
 
         # Silk outline of the package
         dc.rect(3.2, 1.6)
-        dc.silko(side=self.side)
+        dc.silk(side=self.side)
         dc.push()
         if dc.dir == 90:
             dc.forward(-1.8)
