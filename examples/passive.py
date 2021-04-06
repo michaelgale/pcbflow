@@ -7,7 +7,7 @@ from pcbflow import *
 if __name__ == "__main__":
     brd = Board((40, 30))
     brd.add_inner_copper_layer()
-    brd.via_track_width = MILS(24)
+    brd.drc.via_track_width = MILS(24)
 
     C0603(brd.DC((20, 20)).right(90), "0.1 uF", side="top").fanout(None, "VCC")
     C0603(brd.DC((22, 20)).right(90), "0.1 uF", side="bottom").fanout("GND", None)

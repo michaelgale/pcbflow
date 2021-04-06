@@ -1,0 +1,4 @@
+shapely
+pytest
+pillow
+svgwrite
