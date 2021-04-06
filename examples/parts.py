@@ -1,0 +1,28 @@
+import math
+import shapely.geometry as sg
+
+from pcbflow import *
+
+
+if __name__ == "__main__":
+    brd = Board((50, 30))
+    brd.via_track_width = MILS(24)
+
+    brd.add_part((10, 20), SOT23, side="top")
+    brd.add_part((20, 20), SOT223, side="top")
+    brd.add_part((30, 20), TSSOP14, side="top")
+    brd.add_part((35, 10), QFN64, side="top")
+
+    brd.add_part((5, 10), SOT23, side="bottom")
+    brd.add_part((15, 10), SOT223, side="bottom")
+    brd.add_part((25, 10), SOIC8, side="bottom")
+
+    brd.outline()
+    brd.fill_layer("GTL", "GND")
+    brd.fill_layer("GP2", "GND")
+    brd.fill_layer("GBL", "VCC")
+
+    brd.save("%s" % (__file__[:-3]))
+
+    print(brd.parts_str())
+    print(brd.layer_net_str())

@@ -39,7 +39,7 @@ class Part:
     inBOM = True
     source = {}
 
-    def __init__(self, dc, val=None, source=None, side="top"):
+    def __init__(self, dc, val=None, source=None, side="top", **kwargs):
         self.id = dc.board.assign(self)
         self.side = side.lower()
         dc.side = self.side
@@ -51,6 +51,8 @@ class Part:
         self.place(dc)
         if source is not None:
             self.source = source
+        for k, v in kwargs.items():
+            self.__dict__[k] = v
 
     def __str__(self):
         s = []
@@ -143,8 +145,8 @@ class Part:
             )
         dc.pop()
 
-    def smd_pad(self, dc):
-        for layer in dc.board.get_smd_pad_layers(self.side):
+    def smd_pad(self, dc, ignore_paste=False):
+        for layer in dc.board.get_smd_pad_layers(self.side, ignore_paste=ignore_paste):
             if layer.is_mask:
                 g = dc.poly().buffer(dc.board.drc.soldermask_margin)
             else:
@@ -160,10 +162,10 @@ class Part:
         self.smd_pad(dc)
         dc.left(90)
 
-    def roundpad(self, dc, d):
+    def roundpad(self, dc, d, ignore_paste=False):
         (dc.w, dc.h) = (d, d)
         g = sg.Point(dc.xy).buffer(d / 2)
-        for layer in dc.board.get_smd_pad_layers(self.side):
+        for layer in dc.board.get_smd_pad_layers(self.side, ignore_paste=ignore_paste):
             if layer.is_mask:
                 layer.add(g).buffer(dc.board.drc.soldermask_margin)
             else:

@@ -96,7 +96,7 @@ def chars(s):
     return so.unary_union(o)
 
 
-sf = 1 / 32
+sf = 1 / 24
 
 
 def text(x, y, s, scale=1.0, side="top", linewidth=0.08):
@@ -104,7 +104,7 @@ def text(x, y, s, scale=1.0, side="top", linewidth=0.08):
     o = sa.scale(o, sf * scale, -sf * scale, origin=(0, 0))
     cx = o.centroid.x
     cy = o.centroid.y
-    (cx, cy) = (0, 0)
+    # (cx, cy) = (0, 0)
     o = sa.translate(o, -cx + x, -cy + y)
     if side == "bottom":
         o = sa.scale(o, -1.0, 1.0)
@@ -122,13 +122,13 @@ def ctext(x, y, s, side="top", linewidth=0.08):
     return o.buffer(linewidth / 2)
 
 
-def ltext(x, y, s, side="top", linewidth=0.08):
+def ltext(x, y, s, scale=1.0, side="top", linewidth=0.08):
     o = chars(s)
-    o = sa.scale(o, sf, -sf, origin=(0, 0))
+    o = sa.scale(o, scale * sf, -sf * scale, origin=(0, 0))
     o = sa.translate(o, x, y)
     if side == "bottom":
         o = sa.scale(o, -1.0, 1.0)
-    return o.buffer(linewidth / 2)
+    return o.buffer(scale * linewidth / 2)
 
 
 if __name__ == "__main__":

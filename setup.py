@@ -86,4 +86,5 @@ setuptools.setup(
     ],
     install_requires=required,
     dependency_links=dependency_links,
+    scripts=['scripts/lbrlist.py'],    
 )

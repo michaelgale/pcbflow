@@ -30,12 +30,12 @@ def DEGREES(r):
 
 from .gerber import Gerber
 from .excellon import excellon
-from .svgout import svg_write
 from .hershey import text, ltext, ctext
 from .drc import DRC
 from .part import Part, pretty_parts
 from .footprints import *
-from .eagle import LibraryPart
+from .eagle import EaglePart, list_lbr_packages, show_lbr_package
 from .layer import Layer, OutlineLayer, DEFAULT_LAYERS, DEFAULT_LAYER_ORDER
 from .draw import Turtle, Draw
-from .pcbflow import *
+from .board import Board
+from .svgout import svg_write
