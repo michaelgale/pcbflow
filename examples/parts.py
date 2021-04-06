@@ -17,7 +17,7 @@ if __name__ == "__main__":
     brd.add_part((15, 10), SOT223, side="bottom")
     brd.add_part((25, 10), SOIC8, side="bottom")
 
-    brd.outline()
+    brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GP2", "GND")
     brd.fill_layer("GBL", "VCC")

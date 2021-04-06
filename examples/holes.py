@@ -13,7 +13,7 @@ if __name__ == "__main__":
     ]
     for hole in holes:
         brd.add_hole(hole, 2.0)
-    brd.outline()
+    brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GBL", "GND")
     brd.save("%s" % (__file__[:-3]))

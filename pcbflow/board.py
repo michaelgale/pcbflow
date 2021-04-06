@@ -19,7 +19,7 @@ import math
 from pcbflow import *
 
 class Board:
-    def __init__(self, size):
+    def __init__(self, size=(80, 50)):
         self.size = size
         self.drc = DRC()
         self.parts = defaultdict(list)
@@ -156,7 +156,7 @@ class Board:
         )
         self.keepouts.append(bo)
 
-    def outline(self):
+    def add_outline(self):
         self.layers["GML"].add(self.boundary())
         self.boundary_keepout()
 

@@ -28,7 +28,7 @@ if __name__ == "__main__":
         keepout_box=True,
         soldermask_box=True,
     )
-    brd.outline()
+    brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GBL", "GND")
     brd.save("%s" % (__file__[:-3]))

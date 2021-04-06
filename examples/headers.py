@@ -12,7 +12,7 @@ if __name__ == "__main__":
     DIP8(brd.DC((15, 20)))
     DIP16(brd.DC((30, 15)), side="bottom")
 
-    brd.outline()
+    brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GBL", "GND")
     brd.save("%s" % (__file__[:-3]))

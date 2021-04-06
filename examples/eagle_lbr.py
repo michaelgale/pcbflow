@@ -10,7 +10,7 @@ if __name__ == "__main__":
     EaglePart(brd.DC((10, 10)), libraryfile="sparkfun.lbr", partname="USB-B-SMT", side="bottom")
     EaglePart(brd.DC((20, 20)), libraryfile="sparkfun.lbr", partname="TSSOP-24")
 
-    brd.outline()
+    brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GBL", "VCC")
 
