@@ -74,34 +74,34 @@ The `Board` class is a top level object used to perform all the tasks to build a
 Additional internal copper layers can be added as follows:
 
 ```python
-  brd.add_inner_copper_layer()
+  brd.add_inner_copper_layer(layer_count=1)
 ```
 
-This will insert a copper layer named `GP2` inbetween `GTL` and `GBL`.  Subsequent addition of copper layers will be named `GP3`, `GP4`, etc.
+This will insert a copper layer named `GP2` inbetween `GTL` and `GBL`.  Subsequent addition of copper layers will be named `GP3`, `GP4`, etc.  `layer_count` specifies how many inner copper layers to add.
 
 ## Design Rules
 
 A basic set of design rules is stored in the `Board.drc` attribute.  It has the following attributes:
 
 ```python
-        # Copper features
-        self.trace_width = MILS(8)
-        self.via_drill = 0.5
-        self.via_annular_ring = MILS(8)
-        self.via_track_width = MILS(16)
-        # Clearances
-        self.clearance = MILS(8)
-        self.outline_clearance = MILS(20)
-        self.hole_clearance = MILS(20)
-        # Soldermask
-        self.mask_vias = False
-        self.mask_holes = True
-        self.hole_mask = MILS(16)
-        self.soldermask_margin = MILS(3)
-        # Other
-        self.bitmap_res = 0.04
-        self.silk_width = MILS(6)
-        self.text_silk_width = MILS(6)
+  # Copper features
+  self.trace_width = MILS(8)
+  self.via_drill = 0.5
+  self.via_annular_ring = MILS(8)
+  self.via_track_width = MILS(16)
+  # Clearances
+  self.clearance = MILS(8)
+  self.outline_clearance = MILS(20)
+  self.hole_clearance = MILS(20)
+  # Soldermask
+  self.mask_vias = False
+  self.mask_holes = True
+  self.hole_mask = MILS(16)
+  self.soldermask_margin = MILS(3)
+  # Other
+  self.bitmap_res = 0.04
+  self.silk_width = MILS(6)
+  self.text_silk_width = MILS(6)
 ```
 
 ## Numeric Values
@@ -133,7 +133,14 @@ To add a plated through hole:
 Text annotations can be applied to any layer as follows:
 
 ```python
-  brd.add_text((x, y), "ABC", layer="GBO", scale=1.0, side="top", keepout_box=True, soldermask_box=True)
+  brd.add_text((x, y), "ABC",
+        scale=1.0,
+        angle=0.0,
+        side="top",
+        layer=None,
+        keepout_box=False,
+        soldermask_box=False,
+        justify="centre")
 ```
 
 The `side` argument can be specified as either `top` or `bottom`.  This will mirror the text for bottom layers so that it is the correct orientation for fabrication.
@@ -147,7 +154,12 @@ The `side` argument can be specified as either `top` or `bottom`.  This will mir
 Arbitrary bitmap logos/annotations can be applied to the PCB as follows:
 
 ```python
-  brd.add_bitmap((x, y), "logo.png", side="top", scale=0.5, layer="GTL", keepout_box=True)
+  brd.add_bitmap((x, y), "logo.png", 
+    scale=None,
+    side="top",
+    layer=None,
+    keepout_box=False,
+    soldermask_box=False)
 ```
 
 The bitmap should be a monochrome bitmap image with transparent background.  It will be automatically converted into polygons and added to the desired `layer`.  The bitmap size is can be adjusted with the `scale` parameter.  Furthermore, `keepout_box` and `soldermask_box` can be applied as desired.  Lastly, the `side` parameter can flip the orientation of the bitmap for bottom side layers if set to `bottom`
@@ -158,7 +170,25 @@ Description coming soon.
 
 ## Saving Asset Files
 
-Description coming soon.
+**pcbflow** can generate a variety of output asset files representing the PCB.  These include:
+
+- Gerber files for fabrication
+- Bill of Materials (BOM) CSV file
+- Centroids of parts CSV file
+- SVG preview renders of the top, bottom, or all layer views
+- Postscript preview render
+- Povray raytracing files
+
+Outfiles can be created in the same folder as the script file or in a subfolder under the script (generated automatically). To generate asset files:
+
+```python
+  brd.save(basename, in_subdir=True, 
+    gerber=True, svg=True, bom=True, centroids=True, povray=False)
+```
+
+The `in_subdir` argument specifies whether a subfolder named `basename` should be created for the assets.
+The `gerber`, `svg`, `bom`, `centroids`, `povray` arguments specify which of the asset types to generate.
+
 
 ## To Do
 

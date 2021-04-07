@@ -71,12 +71,13 @@ class Board:
                     layers.append(self.layers[k])
         return layers
 
-    def add_inner_copper_layer(self):
-        cu_layers = self.get_copper_layers()
-        n_inner = len(cu_layers)
-        new_layer = "GP%d" % (n_inner)
-        self.layers[new_layer] = Layer(is_copper=True, is_inner=True)
-        self.reorder_layer_stack()
+    def add_inner_copper_layer(self, layer_count=1):
+        for _ in layer_count:
+            cu_layers = self.get_copper_layers()
+            n_inner = len(cu_layers)
+            new_layer = "GP%d" % (n_inner)
+            self.layers[new_layer] = Layer(is_copper=True, is_inner=True)
+            self.reorder_layer_stack()
 
     def get_smd_pad_layers(self, side="top", as_names=False, ignore_paste=False):
         layers = []
@@ -168,6 +169,8 @@ class Board:
         self.layers["GTO"].add(g.buffer(0))
 
     def add_part(self, xy, part, side="top"):
+        if isinstance(xy, Draw):
+            return part(xy, side=side)
         return part(self.DC(xy), side=side)
 
     def add_hole(self, xy, diameter):
@@ -206,7 +209,7 @@ class Board:
         scale=1.0,
         angle=0.0,
         side="top",
-        layer="GTO",
+        layer=None,
         keepout_box=False,
         soldermask_box=False,
         justify="centre",
@@ -222,9 +225,10 @@ class Board:
             )
         gt = sa.rotate(gt, angle)
         gt = sa.translate(gt, x, y)
-        self.layers[layer].add(gt)
+        lyr = layer if layer is not None else self.get_silk_layer(side, as_name=True)
+        self.layers[lyr].add(gt)
         if keepout_box:
-            self.add_keepout_to_obj(gt, layer=layer)
+            self.add_keepout_to_obj(gt, layer=lyr)
         if soldermask_box:
             self.add_mask_to_obj(gt, side)
 
@@ -330,7 +334,7 @@ class Board:
             if not mask.contains(lg):
                 print("Layer", l, "boundary error")
 
-    def save(self, basename, in_subdir=True, with_svg=True, with_povray=False):
+    def save(self, basename, in_subdir=True, gerber=True, svg=True, bom=True, centroids=True, povray=False):
         if in_subdir:
             newpath = os.path.normpath("./%s" % (basename))
             if not os.path.isdir(newpath):
@@ -341,22 +345,24 @@ class Board:
             assetpath = os.path.normpath("./%s" % (basename) + os.sep + basename)
         else:
             assetpath = basename
-        for (id, l) in self.layers.items():
-            with open(assetpath + "." + id, "wt") as f:
-                l.save(f)
-        with open(assetpath + "_PTH.DRL", "wt") as f:
-            excellon(f, self.holes, "Plated,1,4,PTH")
-        with open(assetpath + "_NPTH.DRL", "wt") as f:
-            excellon(f, self.npth, "NonPlated,1,4,NPTH")
 
-        if with_svg:
+        if gerber:
+            for (id, l) in self.layers.items():
+                with open(assetpath + "." + id, "wt") as f:
+                    l.save(f)
+            with open(assetpath + "_PTH.DRL", "wt") as f:
+                excellon(f, self.holes, "Plated,1,4,PTH")
+            with open(assetpath + "_NPTH.DRL", "wt") as f:
+                excellon(f, self.npth, "NonPlated,1,4,NPTH")
+
+        if svg:
             from pcbflow.svgout import svg_write
 
             svg_write(self, assetpath + "_preview_top.svg", side="top")
             svg_write(self, assetpath + "_preview_bot.svg", side="bottom")
             svg_write(self, assetpath + "_preview_all.svg", side="all")
 
-        if with_povray:
+        if povray:
             substrate = self.substrate()
             mask = substrate.preview()
             with open(assetpath + ".sub.pov", "wt") as f:
@@ -367,12 +373,13 @@ class Board:
                 self.layers["GTL"].povray(f, mask=mask)
             with open(assetpath + ".gts.pov", "wt") as f:
                 self.layers["GTS"].povray(f, mask=mask, invert=True)
+        if bom:
+            self.save_bom(assetpath)
+        if centroids:
+            self.save_centroids(assetpath)
 
-        self.bom(assetpath)
-        self.pnp(assetpath)
-
-    def pnp(self, fn):
-        with open(fn + "-pnp.csv", "wt") as f:
+    def save_centroids(self, fn):
+        with open(fn + "-centroids.csv", "wt") as f:
             cs = csv.writer(f)
             cs.writerow(
                 ["Designator", "Center(X)", "Center(Y)", "Rotatation", "Layer", "Note"]
@@ -395,7 +402,7 @@ class Board:
                             [p.id, flt(x), flt(y), str(int(c.dir)), p.side, note]
                         )
 
-    def bom(self, fn):
+    def save_bom(self, fn):
         parts = defaultdict(list)
         rank = "UJKTRCMY"
         for f, pp in self.parts.items():

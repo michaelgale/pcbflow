@@ -8,6 +8,12 @@ def test_add_part():
     brd = Board()
     with pytest.raises(NotImplementedError):
         p0 = Part(brd.DC((5, 5)))
+    # add with XY tuple
+    brd.add_part((1, 2), SOT23, side="top")
+    # add with DC
+    brd.add_part(brd.DC((5, 6)).right(90), SOIC8, side="bottom")
+    assert len(brd.parts) == 2
+
 
 def test_pinheaders():
     brd = Board()

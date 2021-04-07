@@ -20,6 +20,8 @@ DEFAULT_LAYER_ORDER = [
     "GP4",
     "GP5",
     "GP6",
+    "GP7",
+    "GP8",
     "GBL",
     "GBS",
     "GBO",
