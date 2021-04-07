@@ -4,7 +4,7 @@
 #
 
 preamble = """\
-G04 Excamera Labs Gerber RS-274X export*
+G04 pcbflow Gerber RS-274X export*
 G75*
 %MOMM*%
 %FSLAX34Y34*%

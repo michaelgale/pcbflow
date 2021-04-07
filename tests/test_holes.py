@@ -3,7 +3,6 @@ import os
 from pcbflow import *
 
 
-
 def test_add_hole():
     brd = Board()
     n0 = len(brd.npth)
@@ -20,6 +19,7 @@ def test_add_hole():
     hl = brd.npth[0.5]
     assert len(hl) == 2
     assert (12, 10) in hl
+
 
 def test_add_drill():
     brd = Board()
@@ -38,6 +38,7 @@ def test_add_drill():
     assert len(hl) == 2
     assert (3, 4) in hl
 
+
 def test_add_hole_drc_nomask():
     brd = Board()
     brd.drc.mask_holes = False
@@ -55,6 +56,7 @@ def test_add_hole_drc_nomask():
     assert p1 == 0
     assert k1 - k0 == 1
     assert k1 == 1
+
 
 def test_add_hole_drc_masked():
     brd = Board()

@@ -10,6 +10,7 @@ def test_init():
     brd = Board(size=(40, 30))
     assert brd.size == (40, 30)
 
+
 def test_init_layers():
     brd = Board()
     order = 0
@@ -18,6 +19,7 @@ def test_init_layers():
             assert e in brd.layers
             assert brd.layers[e].z_order == order
             order += 1
+
 
 def test_outline():
     brd = Board(size=(40, 30))

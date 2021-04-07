@@ -3,7 +3,7 @@
 # SVG file exporter
 #
 
-
+import decimal
 import shapely.geometry as sg
 import shapely.affinity as sa
 import shapely.ops as so
@@ -11,7 +11,7 @@ import svgwrite
 
 from pcbflow import *
 
-SCALE_FACTOR = 5
+SCALE_FACTOR = 4
 
 SVG_STYLE = {
     "top": {
@@ -121,7 +121,7 @@ def svg_write(board, filename, side="top"):
     )
     li = [block.exterior] + list(block.interiors)
     for l in li:
-        dwg.add(dwg.polyline(l.coords, **args))
+        dwg.add(dwg.polyline(better_coords(l.coords), **args))
 
     def renderlayer(layer, fill_colour="black", line_colour="black", fill_opacity=1.0):
         gto = board.layers[layer].preview()
@@ -132,8 +132,6 @@ def svg_write(board, filename, side="top"):
             "fill": fill_colour,
             "fill_opacity": fill_opacity,
             "stroke_width": 0,
-            "stroke-linejoin": "miter",
-            "stroke-linecap": "square",
         }
 
         def renderpoly(po):
@@ -142,7 +140,7 @@ def svg_write(board, filename, side="top"):
                 return
 
             if len(po.interiors) == 0:
-                dwg.add(dwg.polygon(po.exterior.coords, **args))
+                dwg.add(dwg.polygon(better_coords(po.exterior.coords), **args))
             else:
                 x0 = min([x for (x, y) in po.exterior.coords])
                 x1 = max([x for (x, y) in po.exterior.coords])
@@ -162,14 +160,12 @@ def svg_write(board, filename, side="top"):
             "stroke": line_colour,
             "fill_opacity": 0.0,
             "stroke_width": 0.1,
-            "stroke-linejoin": "miter",
-            "stroke-linecap": "square",
         }
         if not isinstance(gto, sg.Polygon):
             for po in gto:
                 li = [po.exterior] + list(po.interiors)
                 for l in li:
-                    dwg.add(dwg.polyline(l.coords, **args))
+                    dwg.add(dwg.polyline(better_coords(l.coords), **args))
 
     # make a temporary DRL layer to render representations of holes
     board.layers["DRL"] = Layer()

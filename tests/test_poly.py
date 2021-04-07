@@ -23,13 +23,12 @@ def test_add_named_rect():
     bb = brd.layers["GBL"].polys[0][1].bounds
     assert bb == (15.0, 15.0, 30.0, 20.0)
 
+
 def test_add_named_poly():
     brd = Board()
 
     p0 = len(brd.layers["GTL"].polys)
-    coords = [
-        (5, 30), (8, 30), (20, 20), (15, 20), (8, 10), (5, 10)
-    ]
+    coords = [(5, 30), (8, 30), (20, 20), (15, 20), (8, 10), (5, 10)]
     brd.add_named_poly(coords, "GTL", "GND")
     p1 = len(brd.layers["GTL"].polys)
     assert p1 - p0 == 1
@@ -38,4 +37,3 @@ def test_add_named_poly():
     mb = brd.layers["GTL"].polys[0][1].bounds
     print(mb)
     assert mb == (5.0, 10.0, 20.0, 30.0)
-

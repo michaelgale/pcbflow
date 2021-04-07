@@ -28,6 +28,7 @@ def DEGREES(r):
     return 180 * r / math.pi
 
 
+from .util import better_float, better_coords
 from .gerber import Gerber
 from .excellon import excellon
 from .hershey import text, ltext, ctext

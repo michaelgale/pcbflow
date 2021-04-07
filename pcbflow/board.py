@@ -179,6 +179,8 @@ class Board:
 
     def add_named_poly(self, coords, layer, name):
         poly = sg.Polygon(coords)
+        for cc in poly.exterior.coords:
+            print(cc)
         self.layers[layer].add(poly, name)
 
     def add_part(self, xy, part, side="top"):

@@ -12,6 +12,7 @@ def test_init_layers():
             assert brd.layers[e].z_order == order
             order += 1
 
+
 def test_add_layer():
     brd = Board()
     n0 = len(brd.layers)
@@ -23,6 +24,7 @@ def test_add_layer():
     assert n1 - n0 == 1
     assert len(c1) - len(c0) == 1
 
+
 def test_pad_stack_layers():
     brd = Board()
     pl = brd.get_pad_stack_layers(as_names=True)
@@ -30,6 +32,7 @@ def test_pad_stack_layers():
     assert "GBS" in pl
     assert "GTL" in pl
     assert "GTS" in pl
+
 
 def test_smd_pad_layers():
     brd = Board()
@@ -50,10 +53,10 @@ def test_smd_pad_layers():
     assert "GTS" in pl
     assert "GTL" in pl
 
+
 def test_silk_layer():
     brd = Board()
     sl = brd.get_silk_layer(side="top", as_name=True)
     assert sl == "GTO"
     sl = brd.get_silk_layer(side="bottom", as_name=True)
     assert sl == "GBO"
-

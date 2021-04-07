@@ -7,7 +7,6 @@ from pcbflow import *
 def test_add_smd_discrete():
     brd = Board()
 
-
     p0 = C0402(brd.DC((5, 5)), val="0.1u")
     assert p0.val == "0.1u"
     assert p0.family == "C"

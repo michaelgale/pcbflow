@@ -18,6 +18,7 @@ def test_add_text():
     assert n1 - n0 == 1
     assert n1 == 1
 
+
 def test_add_text_keepout():
     brd = Board()
     brd.drc.clearance = 0.1
@@ -49,6 +50,7 @@ def test_add_text_keepout():
     assert n1 == 1
     assert k1 - k0 == 1
     assert k1 == 1
+
 
 def test_add_text_masked():
     brd = Board()

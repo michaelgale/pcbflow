@@ -19,7 +19,7 @@ def test_pinheaders():
     brd = Board()
     with pytest.raises(ValueError):
         PTH(brd.DC((5, 5)))
-    
+
     with pytest.raises(NotImplementedError):
         PTH(brd.DC((5, 5)), diameter=1.0)
 
@@ -40,7 +40,7 @@ def test_pinheaders():
 
     with pytest.raises(ValueError):
         DIP(brd.DC((7, 7)))
-    
+
     p0 = DIP(brd.DC((7, 7)), val=8)
     assert p0.N == 8
     assert p0.diameter == 0.8
@@ -50,4 +50,3 @@ def test_pinheaders():
     assert p0.N == 14
     assert p0.diameter == 0.8
     assert p0.pitch == INCHES(0.1)
-
