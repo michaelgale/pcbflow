@@ -168,6 +168,19 @@ class Board:
         g = self.boundary(1.1 * sr).buffer(sr)
         self.layers["GTO"].add(g.buffer(0))
 
+    def add_named_rect(self, top_left, bottom_right, layer, name):
+        coords = [
+            top_left,
+            (bottom_right[0], top_left[1]),
+            bottom_right,
+            (top_left[0], bottom_right[1]),
+        ]
+        self.add_named_poly(coords, layer, name)
+
+    def add_named_poly(self, coords, layer, name):
+        poly = sg.Polygon(coords)
+        self.layers[layer].add(poly, name)
+
     def add_part(self, xy, part, side="top"):
         if isinstance(xy, Draw):
             return part(xy, side=side)
@@ -334,7 +347,16 @@ class Board:
             if not mask.contains(lg):
                 print("Layer", l, "boundary error")
 
-    def save(self, basename, in_subdir=True, gerber=True, svg=True, bom=True, centroids=True, povray=False):
+    def save(
+        self,
+        basename,
+        in_subdir=True,
+        gerber=True,
+        svg=True,
+        bom=True,
+        centroids=True,
+        povray=False,
+    ):
         if in_subdir:
             newpath = os.path.normpath("./%s" % (basename))
             if not os.path.isdir(newpath):
@@ -347,13 +369,14 @@ class Board:
             assetpath = basename
 
         if gerber:
-            for (id, l) in self.layers.items():
-                with open(assetpath + "." + id, "wt") as f:
-                    l.save(f)
+            for (name, layer) in self.layers.items():
+                with open(assetpath + "." + name, "wt") as f:
+                    layer.save(f)
+            ls = "1,%d" % (len(self.get_copper_layers()))
             with open(assetpath + "_PTH.DRL", "wt") as f:
-                excellon(f, self.holes, "Plated,1,4,PTH")
+                excellon(f, self.holes, "Plated,%s,PTH" % (ls))
             with open(assetpath + "_NPTH.DRL", "wt") as f:
-                excellon(f, self.npth, "NonPlated,1,4,NPTH")
+                excellon(f, self.npth, "NonPlated,%s,NPTH" % (ls))
 
         if svg:
             from pcbflow.svgout import svg_write

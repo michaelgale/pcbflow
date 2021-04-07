@@ -6,7 +6,6 @@ from pcbflow import *
 
 if __name__ == "__main__":
     brd = Board((50, 30))
-    brd.drc.via_track_width = MILS(24)
 
     brd.add_part((10, 20), SOT23, side="top")
     brd.add_part((20, 20), SOT223, side="top")
@@ -19,7 +18,6 @@ if __name__ == "__main__":
 
     brd.add_outline()
     brd.fill_layer("GTL", "GND")
-    brd.fill_layer("GP2", "GND")
     brd.fill_layer("GBL", "VCC")
 
     brd.save("%s" % (__file__[:-3]))
