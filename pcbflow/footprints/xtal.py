@@ -7,8 +7,11 @@ from pcbflow import *
 
 
 class SMD_3225_4P(Part):
-    family = "Y"
-    footprint = "4-SMD"
+
+    def __init__(self, *args, **kwargs):
+        self.family = "X"
+        self.footprint = "4-SMD"
+        super().__init__(*args, **kwargs)
 
     def place(self, dc):
         self.chamfered(dc, 2.8, 3.5, idoffset=(1.4, 0.2))

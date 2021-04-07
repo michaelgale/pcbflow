@@ -33,11 +33,9 @@ def test_add_smd_discrete():
     assert p0.family == "R"
 
     p0 = R0805(brd.DC((5, 5)), val="330")
-    assert p0.val == "220"
+    assert p0.val == "330"
     assert p0.family == "R"
 
     p0 = R1206(brd.DC((5, 5)), val="560")
     assert p0.val == "560"
     assert p0.family == "R"
-
-    print(brd.parts_str())

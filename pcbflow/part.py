@@ -18,7 +18,10 @@ from pcbflow import *
 
 
 def pretty_parts(nms):
+    if len(nms[0][0]) < 2:
+        return ""
     f = nms[0][0]
+    print(nms)
     nn = [int(nm[1:]) for nm in nms]
     ni = []
     while nn:

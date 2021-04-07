@@ -8,10 +8,10 @@ from pcbflow import *
 
 class FTG256(Part):
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.family = "U"
         self.footprint = "FTG256"
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
 
     def place(self, dc):
         self.chamfered(dc, 17, 17)

@@ -7,8 +7,12 @@ from pcbflow import *
 
 
 class SOIC(Part):
-    family = "U"
-    footprint = "SOIC"
+
+    def __init__(self, *args, N=8, footprint="SOIC", **kwargs):
+        self.family = "U"
+        self.footprint = footprint
+        self.N = N
+        super().__init__(*args, **kwargs)
 
     def place(self, dc):
 
@@ -25,12 +29,14 @@ class SOIC(Part):
 
 
 class SOIC8(SOIC):
-    N = 8
-    footprint = "SOIC-8"
 
-    A = 4.0
-    B = 5.0
-    C = 5.90
-    D = 3.81
-    G = 3.0
-    Z = 7.4
+    def __init__(self, *args, **kwargs):
+        self.A = 4.0
+        self.B = 5.0
+        self.C = 5.90
+        self.D = 3.81
+        self.G = 3.0
+        self.Z = 7.4
+        super().__init__(*args, N=8, footprint="SOIC-8", **kwargs)
+
+

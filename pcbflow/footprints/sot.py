@@ -7,8 +7,11 @@ from pcbflow import *
 
 
 class SOT23(Part):
-    family = "T"
-    footprint = "SOT23"
+
+    def __init__(self, *args, **kwargs):
+        self.family = "U"
+        self.footprint = "SOT23"
+        super().__init__(*args, **kwargs)
 
     def place(self, dc):
         self.chamfered(dc, 3.0, 1.4)
@@ -20,8 +23,11 @@ class SOT23(Part):
 
 
 class SOT223(Part):
-    family = "U"
-    footprint = "SOT223"
+
+    def __init__(self, *args, **kwargs):
+        self.family = "U"
+        self.footprint = "SOT223"
+        super().__init__(*args, **kwargs)
 
     def place(self, dc):
         self.chamfered(dc, 6.30, 3.30)

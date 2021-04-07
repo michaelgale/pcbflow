@@ -17,7 +17,8 @@ class PTH(Part):
                 self.val = kwargs["val"]
             else:
                 self.val = 1
-        super().__init__(*args, val=self.val, **kwargs)
+        self.N = self.val
+        super().__init__(*args, **kwargs)
 
     def gh(self, dc):
         dc.board.add_drill(dc.xy, self.diameter)
@@ -47,7 +48,6 @@ class SIL(PTH):
         super().__init__(*args, **kwargs)
 
     def place(self, dc):
-        self.N = int(self.val)
         dc.forward(((self.N - 1) / 2) * self.pitch).left(180)
         self.train(dc, self.N, lambda: self.gh(dc), self.pitch)
         [p.set_name(str(i + 1)) for (i, p) in enumerate(self.pads)]
@@ -72,7 +72,6 @@ class DIP(PTH):
         super().__init__(*args, **kwargs)
 
     def place(self, dc):
-        self.N = int(self.val)
         pn = (self.N // 4 - 1) + 0.5
         self.chamfered(dc, 6.2, (self.N // 2 * self.pitch) + 0.2)
         for _ in range(2):

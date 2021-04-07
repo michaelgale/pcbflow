@@ -7,8 +7,11 @@ from pcbflow import *
 
 
 class QFN64(Part):
-    family = "U"
-    footprint = "QFN64"
+
+    def __init__(self, *args, **kwargs):
+        self.family = "U"
+        self.footprint = "QFN64"
+        super().__init__(*args, **kwargs)
 
     def place(self, dc):
         # Ground pad

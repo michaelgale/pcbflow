@@ -7,8 +7,12 @@ from pcbflow import *
 
 
 class TSSOP(Part):
-    family = "U"
-    footprint = "TSSOP"
+
+    def __init__(self, *args, N=None, footprint="TSSOP", **kwargs):
+        self.family = "U"
+        self.footprint = footprint
+        self.N = N
+        super().__init__(*args, **kwargs)
 
     def place(self, dc):
         self.chamfered(dc, 4.4, {14: 5.0, 20: 6.5}[self.N])
@@ -26,20 +30,29 @@ class TSSOP(Part):
 
 
 class TSSOP14(TSSOP):
-    N = 14
-    footprint = "TSSOP14"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, N=14, footprint="TSSOP14", **kwargs)
 
 
 class TSSOP16(TSSOP):
-    N = 16
-    footprint = "TSSOP16"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, N=16, footprint="TSSOP16", **kwargs)
 
 
 class TSSOP20(TSSOP):
-    N = 20
-    footprint = "TSSOP20"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, N=20, footprint="TSSOP20", **kwargs)
 
 
 class TSSOP24(TSSOP):
-    N = 24
-    footprint = "TSSOP24"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, N=24, footprint="TSSOP24", **kwargs)
+
+class TSSOP28(TSSOP):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, N=28, footprint="TSSOP28", **kwargs)
