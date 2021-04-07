@@ -74,10 +74,9 @@ class Part:
             sp = []
             for i, p in enumerate(self.pads):
                 name = "-" if p.name is None else p.name
-                sp.append("%d: %s" % (i + 1, name))
-            sp = " ".join(sp)
+                sp.append("%3d: %s (%.2f, %.2f)" % (i + 1, name, better_float(p.xy[0]), better_float(p.xy[1])))
         s.append(
-            "Part: %s %s %s %-6s (%6.2f, %6.2f) / %.0f deg %2d pads %s"
+            "Part: %s %s %s %-6s (%6.2f, %6.2f) / %.0f deg %2d pads"
             % (
                 self.id,
                 self.footprint,
@@ -86,9 +85,9 @@ class Part:
                 *self.center.xy,
                 self.center.dir,
                 len(self.pads),
-                sp,
             )
         )
+        s.append(col_str(sp))
         return "\n".join(s)
 
     def text(self, dc, s):

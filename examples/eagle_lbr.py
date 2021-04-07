@@ -13,7 +13,8 @@ if __name__ == "__main__":
         partname="USB-B-SMT",
         side="bottom",
     )
-    EaglePart(brd.DC((20, 20)), libraryfile="sparkfun.lbr", partname="TSSOP-24")
+    EaglePart(brd.DC((10, 10)), libraryfile="sparkfun.lbr", partname="TSSOP-24")
+    EaglePart(brd.DC((25, 15)), libraryfile="sparkfun.lbr", partname="ARDUINO_MINI")
 
     brd.add_outline()
     brd.fill_layer("GTL", "GND")

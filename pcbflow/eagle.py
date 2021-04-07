@@ -3,7 +3,7 @@
 # Eagle library part importer
 #
 
-import sys
+import os, sys
 import math
 from collections import defaultdict
 
@@ -13,6 +13,7 @@ import shapely.affinity as sa
 import shapely.ops as so
 
 from .part import Part
+from .util import col_print
 
 LAYER_DIMENSION = "20"
 LAYER_TPLACE = "21"
@@ -27,15 +28,7 @@ def list_lbr_packages(fn):
     packages = sorted([p.attrib["name"] for p in x_packages])
     col = 0
     s = []
-    for k in packages:
-        s.append("%-36s" % (k))
-        col += 1
-        if col > 2:
-            print("".join(s))
-            s = []
-            col = 0
-    if col > 0:
-        print("".join(s))
+    col_print(packages)
     return len(packages)
 
 
@@ -46,15 +39,23 @@ def show_lbr_package(fn, package):
     packages = {p.attrib["name"]: p for p in x_packages}
     for k, v in packages.items():
         if k == package:
+            conn = {}
             d = defaultdict(int)
             for va in v:
                 d[va.tag] += 1
+                if va.tag in ("pad", "smd"):
+                    conn[va.attrib["name"]] = (float(va.attrib["x"]), float(va.attrib["y"]))
             print("Package %s in %s : " % (package, fn))
             s = []
             for ka, va in d.items():
                 s.append("  %s: %d," % (ka, va))
             s = "".join(s).rstrip(",")
-            print(s)
+            print("  Entities: %s" % (s))
+            s = []
+            for ka, va in conn.items():
+                s.append("  %3s: %s" % (ka, va))
+            print("  Pads:")
+            col_print(s)
 
 
 def parse_rotation(attr):
@@ -92,6 +93,7 @@ class EaglePart(Part):
         self.pa = packages[self.partname]
         super().__init__(dc, val, source, **kwargs)
         self.labels = {}
+        self.terminals = {}
 
     def _print_attr(self, label, attr):
         s = []

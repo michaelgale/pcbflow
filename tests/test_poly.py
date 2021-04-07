@@ -35,5 +35,4 @@ def test_add_named_poly():
     assert p1 == 1
 
     mb = brd.layers["GTL"].polys[0][1].bounds
-    print(mb)
     assert mb == (5.0, 10.0, 20.0, 30.0)

@@ -135,12 +135,13 @@ class Board:
                         if net[0] is not None:
                             ld[net[0]] += 1
                     for kd, vd in ld.items():
-                        sd.append("%s: %d " % (kd, vd))
+                        sd.append("%s: %d" % (kd, vd))
                     if len(sd) > 0:
                         s.append(
-                            "Layer %s : %-16s Nets: %s"
-                            % (layer, self.layers[layer].function, "".join(sd))
+                            "Layer %s : %-16s Nets: %d"
+                            % (layer, self.layers[layer].function, len(sd))
                         )
+                        s.append(col_str(sd))
         return "\n".join(s)
 
     def boundary(self, r=0):
@@ -179,8 +180,6 @@ class Board:
 
     def add_named_poly(self, coords, layer, name):
         poly = sg.Polygon(coords)
-        for cc in poly.exterior.coords:
-            print(cc)
         self.layers[layer].add(poly, name)
 
     def add_part(self, xy, part, side="top"):

@@ -59,37 +59,38 @@ if __name__ == "__main__":
     argsd = vars(args)
 
     if argsd["part"] is not None:
-        show_lbr_package(argsd["library"], argsd["part"])
+        part = argsd["part"].upper()
+        show_lbr_package(argsd["library"], part)
         brd = Board((100, 100))
         brd.drc.mask_holes = True
         brd.drc.hole_mask = MILS(10)
         try:
-            part = EaglePart(
+            ep = EaglePart(
                 brd.DC((50, 50)),
                 libraryfile=argsd["library"],
-                partname=argsd["part"],
+                partname=part,
                 debug=argsd["verbose"],
             )
         except ValueError:
             print(
                 crayons.red("Part ")
-                + argsd["part"]
+                + part
                 + crayons.red(" was not found in ")
                 + argsd["library"]
             )
             exit()
-        b = []
-        for layer in ["GTO", "GTL", "GTS", "GTP"]:
-            obj = brd.layers[layer].preview()
-            b.append(obj.bounds)
-        bounds = max_bounds(b)
-        g = sg.box(*bounds)
-        brd.layers["GML"].add(g)
         if argsd["svg"]:
-            print("Exporting %s in %s..." % (argsd["part"], argsd["library"]))
-            svg_write(brd, argsd["part"] + ".svg")
+            print("Exporting %s in %s..." % (part, argsd["library"]))
+            b = []
+            for layer in ["GTO", "GTL", "GTS", "GTP"]:
+                obj = brd.layers[layer].preview()
+                b.append(obj.bounds)
+            bounds = max_bounds(b)
+            g = sg.box(*bounds)
+            brd.layers["GML"].add(g)
+            svg_write(brd, part + ".svg")
             print(
-                crayons.green("%s exported to %s.svg" % (argsd["part"], argsd["part"]))
+                crayons.green("%s exported to %s.svg" % (part, part))
             )
     else:
         print(
