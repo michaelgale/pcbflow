@@ -5,9 +5,14 @@ from pcbflow import *
 
 
 if __name__ == "__main__":
-    
+
     brd = Board((50, 30))
-    EaglePart(brd.DC((10, 10)), libraryfile="sparkfun.lbr", partname="USB-B-SMT", side="bottom")
+    EaglePart(
+        brd.DC((10, 10)),
+        libraryfile="sparkfun.lbr",
+        partname="USB-B-SMT",
+        side="bottom",
+    )
     EaglePart(brd.DC((20, 20)), libraryfile="sparkfun.lbr", partname="TSSOP-24")
 
     brd.add_outline()

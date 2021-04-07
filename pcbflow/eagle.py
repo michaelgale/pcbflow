@@ -69,10 +69,6 @@ def parse_rotation(attr):
 
 
 class EaglePart(Part):
-    use_silk = True
-    use_pad_text = False
-    family = "U"
-
     def __init__(
         self,
         dc,
@@ -86,6 +82,7 @@ class EaglePart(Part):
         self.debug = debug
         self.libraryfile = libraryfile
         self.partname = partname
+        self.use_silk = True
         tree = ET.parse(self.libraryfile)
         root = tree.getroot()
         x_packages = root.find("drawing").find("library").find("packages")
@@ -115,7 +112,7 @@ class EaglePart(Part):
                 (x, y, size) = [float(attr[t]) for t in "x y size".split()]
                 rot = parse_rotation(attr)
                 p = dc.copy().goxy(x, y)
-                self.labels[c.text] = {"xy": p.xy, "rot": rot, "size": size }
+                self.labels[c.text] = {"xy": p.xy, "rot": rot, "size": size}
 
             elif c.tag == "wire" and attr["layer"] in DOC_LAYERS:
                 if self.debug:

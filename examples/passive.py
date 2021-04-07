@@ -29,6 +29,11 @@ if __name__ == "__main__":
     R0402(brd.DC((11, 20)).right(90), "4.7k", side="top")
     R0402(brd.DC((14, 20)).right(90), "4.7k", side="bottom")
 
+    R0805(brd.DC((30, 20)), "2k", side="top")
+    R0805(brd.DC((32, 23)), "2k", side="bottom")
+    R0805(brd.DC((35, 20)), "2k", side="top")
+    R0805(brd.DC((37, 23)), "2k", side="bottom")
+
     brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GP2", "VDD")

@@ -33,26 +33,37 @@ def pretty_parts(nms):
 
 
 class Part:
-    mfr = ""
-    footprint = ""
-    val = ""
-    inBOM = True
-    source = {}
-
     def __init__(self, dc, val=None, source=None, side="top", **kwargs):
+        self.mfr = ""
+        if "family" not in self.__dict__:
+            self.family = ""
+        if "footprint" not in self.__dict__:
+            self.footprint = ""
+        self.inBOM = True
         self.id = dc.board.assign(self)
         self.side = side.lower()
-        dc.side = self.side
+        self.pads = []
         if val is not None:
             self.val = val
-        self.pads = []
-        self.board = dc.board
-        self.center = dc.copy()
-        self.place(dc)
+        else:
+            self.val = ""
         if source is not None:
             self.source = source
+        else:
+            self.source = {}
+
+        dc.side = self.side
+        self.board = dc.board
+        self.center = dc.copy()
         for k, v in kwargs.items():
             self.__dict__[k] = v
+
+        self.place(dc)
+
+    def place(self, dc):
+        raise NotImplementedError(
+            "Part class must be inherited from a class that implements the place method"
+        )
 
     def __str__(self):
         s = []
@@ -64,8 +75,17 @@ class Part:
                 sp.append("%d: %s" % (i + 1, name))
             sp = " ".join(sp)
         s.append(
-            "Part: %s  %-6s (%6.2f, %6.2f) / %3.0f deg %2d pads %s"
-            % (self.id, self.side, *self.center.xy, self.center.dir, len(self.pads), sp)
+            "Part: %s %s %s %-6s (%6.2f, %6.2f) / %.0f deg %2d pads %s"
+            % (
+                self.id,
+                self.footprint,
+                self.val,
+                self.side,
+                *self.center.xy,
+                self.center.dir,
+                len(self.pads),
+                sp,
+            )
         )
         return "\n".join(s)
 

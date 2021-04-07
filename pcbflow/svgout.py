@@ -179,7 +179,7 @@ def svg_write(board, filename, side="top"):
     for d, xys in board.npth.items():
         dp = so.unary_union([sg.Point(xy).buffer(d / 2) for xy in xys])
         board.layers["DRL"].add(dp)
-        
+
     if side not in SVG_STYLE:
         raise KeyError("Cannot find a style called %s in SVG_STYLE" % (side))
     style = SVG_STYLE[side.lower()]

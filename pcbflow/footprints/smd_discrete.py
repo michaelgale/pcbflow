@@ -7,11 +7,7 @@ from pcbflow import *
 
 
 class Discrete2(Part):
-    def escape(self, l0, l1):
-        # Connections to GND and VCC
-        [p.outside() for p in self.pads]
-        self.pads[0].wvia(l0)
-        self.pads[1].wvia(l1)
+
 
     def fanout(self, pad1=None, pad2=None):
         layer = "GTL" if self.side == "top" else "GBL"
@@ -22,27 +18,30 @@ class Discrete2(Part):
 
 
 class C0402(Discrete2):
-    family = "C"
-    footprint = "0402"
+
+    def __init__(self, *args, family="C", **kwargs):
+        self.family = family
+        self.footprint = "0402"
+        super().__init__(*args, **kwargs)
 
     def place(self, dc):
         # Pads on either side
         for d in (-90, 90):
             dc.push()
             dc.right(d)
-            dc.forward(1.30 / 2)
-            dc.rect(0.8, 0.8)
+            dc.forward(1.0 / 2)
+            dc.rect(0.6, 0.6)
             self.smd_pad(dc)
             dc.pop()
 
         # Silk outline of the package
-        dc.rect(1.0, 0.5)
+        dc.rect(2.5, 1.5)
         dc.silk(side=self.side)
         dc.push()
         if dc.dir == 90:
-            dc.forward(-1.2)
+            dc.forward(-1.5)
         else:
-            dc.forward(1.2)
+            dc.forward(1.5)
         self.label(dc, angle=dc.dir)
         dc.pop()
 
@@ -53,72 +52,130 @@ class C0402(Discrete2):
 
 
 class C0603(Discrete2):
-    family = "C"
-    footprint = "0603"
+
+    def __init__(self, *args, family="C", **kwargs):
+        self.family = family
+        self.footprint = "0603"
+        super().__init__(*args, **kwargs)
 
     def place(self, dc, source=None):
         # Pads on either side
         for d in (-90, 90):
             dc.push()
             dc.right(d)
-            dc.forward(1.70 / 2)
+            dc.forward(1.60 / 2)
             dc.rect(1.0, 1.0)
             self.smd_pad(dc)
             dc.pop()
 
         # Silk outline of the package
-        dc.rect(1.6, 0.8)
+        dc.rect(3.5, 1.9)
         dc.silk(side=self.side)
         dc.push()
         if dc.dir == 90:
-            dc.forward(-1.3)
+            dc.forward(-1.7)
         else:
-            dc.forward(1.3)
+            dc.forward(1.7)
         self.label(dc, angle=dc.dir)
         dc.pop()
 
+class C0805(Discrete2):
 
-class C1206(Discrete2):
-    family = "C"
-    footprint = "1206"
+    def __init__(self, *args, family="C", **kwargs):
+        self.family = family
+        self.footprint = "0805"
+        super().__init__(*args, **kwargs)
 
     def place(self, dc, source=None):
         # Pads on either side
         for d in (-90, 90):
             dc.push()
             dc.right(d)
-            dc.forward(3.40 / 2)
-            dc.rect(2.0, 2.0)
+            dc.forward(2.0 / 2)
+            dc.rect(1.5, 1.0)
             self.smd_pad(dc)
             dc.pop()
 
         # Silk outline of the package
-        dc.rect(3.2, 1.6)
+        dc.rect(3.9, 2.4)
         dc.silk(side=self.side)
         dc.push()
         if dc.dir == 90:
-            dc.forward(-1.8)
+            dc.forward(-2)
         else:
-            dc.forward(1.8)
+            dc.forward(2)
+        self.label(dc, angle=dc.dir)
+        dc.pop()
+
+
+class C1206(Discrete2):
+
+    def __init__(self, *args, family="C", **kwargs):
+        self.family = family
+        self.footprint = "1206"
+        super().__init__(*args, **kwargs)
+
+    def place(self, dc, source=None):
+        # Pads on either side
+        for d in (-90, 90):
+            dc.push()
+            dc.right(d)
+            dc.forward(3.0 / 2)
+            dc.rect(1.8, 1.2)
+            self.smd_pad(dc)
+            dc.pop()
+
+        # Silk outline of the package
+        dc.rect(5.1, 2.7)
+        dc.silk(side=self.side)
+        dc.push()
+        if dc.dir == 90:
+            dc.forward(-2.1)
+        else:
+            dc.forward(2.1)
         self.label(dc, angle=dc.dir)
         dc.pop()
 
 
 class R0402(C0402):
-    family = "R"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, family="R", **kwargs)
 
 class R0603(C0603):
-    family = "R"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, family="R", **kwargs)
+
+class R0805(C0805):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, family="R", **kwargs)
 
 class R1206(C1206):
-    family = "R"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, family="R", **kwargs)
+
+
+class L0402(C0402):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, family="L", **kwargs)
 
 
 class L0603(C0603):
-    family = "L"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, family="L", **kwargs)
+
+class L0805(C0805):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, family="L", **kwargs)
 
 
 class L1206(C1206):
-    family = "L"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, family="L", **kwargs)

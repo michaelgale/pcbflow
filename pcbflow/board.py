@@ -18,6 +18,7 @@ import math
 
 from pcbflow import *
 
+
 class Board:
     def __init__(self, size=(80, 50)):
         self.size = size
@@ -347,7 +348,7 @@ class Board:
             excellon(f, self.holes, "Plated,1,4,PTH")
         with open(assetpath + "_NPTH.DRL", "wt") as f:
             excellon(f, self.npth, "NonPlated,1,4,NPTH")
-        
+
         if with_svg:
             from pcbflow.svgout import svg_write
 
