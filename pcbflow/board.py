@@ -72,7 +72,7 @@ class Board:
         return layers
 
     def add_inner_copper_layer(self, layer_count=1):
-        for _ in layer_count:
+        for _ in range(layer_count):
             cu_layers = self.get_copper_layers()
             n_inner = len(cu_layers)
             new_layer = "GP%d" % (n_inner)
