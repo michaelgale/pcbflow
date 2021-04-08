@@ -16,6 +16,9 @@ class Turtle:
         return "<at (%.3f, %.3f) facing %.3f>" % (self.xy + (self.dir,))
 
     def w(self, s, layer="GTL"):
+        return self.turtle(s, layer=layer)
+
+    def turtle(self, s, layer="GTL"):
         tokens = s.split()
         cmds1 = {
             "i": self.inside,

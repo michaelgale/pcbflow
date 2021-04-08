@@ -119,7 +119,7 @@ The default internal representation of numerical values of distance, length, etc
 You can add standard non-plated through holes as follows:
 
 ```python
-  brd.add_hole((x, y), diameter)
+brd.add_hole((x, y), diameter)
 ```
 
 Note that added holes will automatically add a keepout and solder mask margin if specified by the `DRC`.  `DRC.hole_clearance` specifies the keepout border clearance, `DRC.mask_holes` enables/disables a solder mask region over the hole with a border width specified by `DRC.hole_mask`.
@@ -127,7 +127,7 @@ Note that added holes will automatically add a keepout and solder mask margin if
 To add a plated through hole:
 
 ```python
-  brd.add_drill((x, y), diameter)
+brd.add_drill((x, y), diameter)
 ```
 
 ## Text
@@ -230,7 +230,7 @@ print(usb_con)
 #   5: VUSB (17.00, 8.12)
 
 # alternatively, we can reference the pad by name to do the same thing
-usb_con.s("D-").w("r 90 f 5 l 90 f 10").wire(width=0.25)     
+usb_con.pad("D-").turtle("r 90 f 5 l 90 f 10").wire(width=0.25)     
 ```
 
 ## Saving Asset Files
@@ -253,6 +253,48 @@ brd.save(basename, in_subdir=True,
 
 The `in_subdir` argument specifies whether a subfolder named `basename` should be created for the assets.
 The `gerber`, `svg`, `bom`, `centroids`, `povray` arguments specify which of the asset types to generate.
+
+## Putting it Together
+
+```python
+from pcbflow import *
+
+brd = Board((55, 30))
+
+brd.add_part((5, 15), HDMI, side="top", rot=90)
+brd.add_part((32, 15), QFN64, side="top")
+brd.add_part((15, 18), R0603, side="top")
+brd.add_part((15, 12), R0603, side="top", val="4.7k")
+brd.add_part((15, 25), R0603, side="top", val="200", rot=90).fanout("VCC", None)
+C0603(brd.DC((35, 23)), "0.1 uF", side="top").fanout("GND", "VCC")
+C0603(brd.DC((41, 22)), "0.1 uF", side="bottom").fanout("GND", None)
+C0603(brd.DC((35, 7)).right(90), "0.1 uF", side="top").fanout("VCC", "GND")
+C0603(brd.DC((42, 8)).right(90), "0.1 uF", side="bottom").fanout("VCC", None)
+
+for x in range(5):
+    brd.add_part((5 + x * 3, 4), C0402, side="top")
+
+brd.add_part((25, 25), SOT23, side="bottom")
+brd.add_part((20, 8), SOT223, side="bottom")
+brd.add_part((35, 5), SOIC8, side="bottom")
+usb_con = EaglePart(
+    brd.DC((50, 15)).right(180),
+    libraryfile="sparkfun.lbr",
+    partname="USB-B-SMT",
+    side="top",
+)
+for p in ["D+", "D-"]:
+    usb_con.pad(p).turtle("r 90 f 2 r 45 f 1 l 45 f 2").wire()
+
+brd.add_outline()
+brd.fill_layer("GTL", "GND")
+brd.fill_layer("GBL", "VCC")
+
+brd.save("%s" % (__file__[:-3]))
+```
+| All layers | Top | Bottom |
+| --- | --- | --- |
+| <img src=./images/sample_all.png> | <img src=./images/sample_top.png> | <img src=./images/sample_bot.png> |
 
 
 ## To Do

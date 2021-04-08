@@ -207,3 +207,10 @@ class Part:
         if " " in nm:
             return [self.s(n) for n in nm.split()]
         return {p.name: p for p in self.pads}[nm]
+
+    def pad(self, named=None):
+        if " " in named:
+            return [self.pad(n) for n in named.split()]
+        if named is not None:
+            return {p.name: p for p in self.pads}[named]
+        raise KeyError("A valid pad name reference must be specified")

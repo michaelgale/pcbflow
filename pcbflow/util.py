@@ -40,3 +40,24 @@ def col_str(items):
             s = []
     cs.append("%s\n" % ("".join(s)))
     return "".join(cs)
+
+
+def max_bounds(bounds, min_bound=5):
+    mbounds = [1e18, 1e18, -1e18, -1e18]
+    for b in bounds:
+        if len(b) > 0:
+            mbounds[0] = min(mbounds[0], b[0])
+            mbounds[1] = min(mbounds[1], b[1])
+            mbounds[2] = max(mbounds[2], b[2])
+            mbounds[3] = max(mbounds[3], b[3])
+    # if no valid baounds, return a safe minimum rectangle
+    if mbounds[0] > mbounds[3]:
+        return (-min_bound, -min_bound, min_bound, min_bound)
+    # apply a small boundary margin
+    mbounds = [
+        mbounds[0] - min_bound,
+        mbounds[1] - min_bound,
+        mbounds[2] + min_bound,
+        mbounds[3] + min_bound,
+    ]
+    return mbounds
