@@ -292,10 +292,11 @@ brd.fill_layer("GBL", "VCC")
 
 brd.save("%s" % (__file__[:-3]))
 ```
-| All layers | Top | Bottom |
-| --- | --- | --- |
-| <img src=./images/sample_all.png> | <img src=./images/sample_top.png> | <img src=./images/sample_bot.png> |
-
+| Top | Bottom |
+| --- | --- |
+| <img src=./images/sample_top.png> | <img src=./images/sample_bot.png> |
+| All Layers | |
+| <img src=./images/sample_all.png> |  |
 
 ## To Do
 
