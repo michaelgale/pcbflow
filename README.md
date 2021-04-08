@@ -62,6 +62,7 @@ The `Board` class is a top level object used to perform all the tasks to build a
 **pcbflow** creates the following layer stack by default:
 
 - `GML` - Mechanical outline
+- `GTD` - Top side documentation
 - `GTP` - Top side solder paste
 - `GTO` - Top side silkscreen
 - `GTS` - Top side solder mask
@@ -70,6 +71,7 @@ The `Board` class is a top level object used to perform all the tasks to build a
 - `GBS` - Bottom side solder mask
 - `GBO` - Bottom side silkscreen
 - `GBP` - Bottom side solder paste
+- `GBD` - Bottom side documentation
 
 Additional internal copper layers can be added as follows:
 
@@ -164,9 +166,62 @@ Arbitrary bitmap logos/annotations can be applied to the PCB as follows:
 
 The bitmap should be a monochrome bitmap image with transparent background.  It will be automatically converted into polygons and added to the desired `layer`.  The bitmap size is can be adjusted with the `scale` parameter.  Furthermore, `keepout_box` and `soldermask_box` can be applied as desired.  Lastly, the `side` parameter can flip the orientation of the bitmap for bottom side layers if set to `bottom`
 
+## Named Polygons
+
+Arbitary polygon regions can be added to a copper layer with a name corresponding to its net name.  For example, this can be used to apply different voltage "patches" under a part requiring several voltages, or to make a split plane of several voltages or GND references. 
+
+```python
+  # add a polygon with a coordinate list
+  #   add_named_poly(coords, layer, name)
+  brd.add_named_poly([(1,1), (1,2), (5,1)], layer="GTL", "GND")
+
+  # convenience method for making a rectangular polygon with two corner points
+  #   add_named_rect(top_left, bottom_right, layer, name)
+  brd.add_named_rect((1, 10), (20, 3), "GBL", "VCC")
+```
+
 ## Parts
 
-Description coming soon.
+Parts can be added in three ways:
+
+1. Drawing directly with primitives in class derived from `Part` (see the `footprints` folder for examples)
+2. Importing a package from an Eagle library file using `EaglePart`
+3. Importing a footprint from a KiCAD footprint library file using `KiCadPart`
+
+```python
+   # adding a generic part with SOT23(Part)
+   brd.add_part((10, 20), SOT23, side="top")
+   # adding a generic R0603(Part) SMD resistor by passing the board "Drawing Context" (DC)
+   #   Part classes instantiate themselves directly from DC--this allows the part
+   #   to derive its location, orientation, etc.
+   R0603(brd.DC((20, 10)), "4.7k", side="bottom")
+
+   # adding an Eagle part called USB-B-SMT from sparkfun.lbr
+   # chaining the right(90) method to DC places the part 90 deg rotated
+   EaglePart(brd.DC((10, 10)).right(90), libraryfile="sparkfun.lbr", partname="USB-B-SMT", side="top")
+
+   # adding a KiCAD footprint part from file kc1.kicad_mod
+   # specifying the side="bottom" automatically maps the footprint copper, mask, paste,
+   # and silkscreen layers to the bottom (automatically mirroring in the horizontal axis)
+   KiCadPart(brd.DC((10, 10)), libraryfile="kc1.kicad_mod", side="bottom")
+
+   # assigning a variable to a placed part allow us to reference it again
+   # later for tasks such as renaming pads, routing signals from a pad location,
+   # routing a group of signals as a bus (or "river" in CuFlow), etc.
+   usb_con = EaglePart(brd.DC((10, 10)), libraryfile="sparkfun.lbr", partname="USB-B-SMT", side="top")
+   # route a wire from pad 3 to 5 mm right, 10 mm up with a width 0.25 mm
+   # if width is omitted it will use the default trace_width in Board.DRC
+   usb_con.pads[3].w("r 90 f 5 l 90 f 10").wire(width=0.25)
+
+   # print a Part's details (pad 3 happens to be the USB connector's D- line)
+   print(usb_con)
+# Part: 3   top    ( 10.00,  10.00) / 0 deg  6 pads
+#   0: 5 (10.58, 16.80)    1: 6 (10.58, 3.20)     2: D+ (17.00, 11.88)   3: D- (22.00, 20.62)   4: GND (17.00, 9.38)
+#   5: VUSB (17.00, 8.12)
+   
+   # alternatively, we can reference the pad by name to do the same thing
+   usb_con.s("D-").w("r 90 f 5 l 90 f 10").wire(width=0.25)     
+```
 
 ## Saving Asset Files
 

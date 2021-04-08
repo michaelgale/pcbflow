@@ -76,7 +76,7 @@ class Part:
                 name = "-" if p.name is None else p.name
                 sp.append(
                     "%3d: %s (%.2f, %.2f)"
-                    % (i + 1, name, better_float(p.xy[0]), better_float(p.xy[1]))
+                    % (i, name, better_float(p.xy[0]), better_float(p.xy[1]))
                 )
         s.append(
             "Part: %s %s %s %-6s (%6.2f, %6.2f) / %.0f deg %2d pads"

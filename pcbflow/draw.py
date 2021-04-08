@@ -105,6 +105,7 @@ class Draw(Turtle):
         r.name = self.name
         r.part = self.part
         r.width = self.width
+        r.side = self.side
         return r
 
     def forward(self, d):
@@ -311,15 +312,19 @@ class Draw(Turtle):
         g1 = sg.LineString(self.path).buffer(buf)
         g2 = sg.LinearRing(g1.exterior.coords)
         brd.layers["GML"].add(g2)
-        g3 = g1.buffer(0.3)
+        g3 = g1.buffer(
+            self.board.drc.soldermask_margin + self.board.drc.via_annular_ring
+        )
         brd.layers["GTS"].add(g3)
-        g4 = g3.difference(g1.buffer(-0.05))
-        for l in self.board.get_copper_layers():
+        brd.layers["GBS"].add(g3)
+        g3 = g1.buffer(self.board.drc.via_annular_ring)
+        g4 = g3.difference(g1.buffer(-self.board.drc.via_annular_ring / 2))
+        for l in self.board.get_copper_layers(as_names=True):
             brd.layers[l].add(g4)
-        strut_x = sa.scale(g4.envelope, yfact=0.15)
-        strut_y = sa.scale(g4.envelope, xfact=0.15)
+        strut_x = sa.scale(g4.envelope, yfact=0)
+        strut_y = sa.scale(g4.envelope, xfact=0)
         struts = strut_x.union(strut_y)
-        brd.layers["GTP"].add(g4.difference(struts))
+        brd.get_paste_layer(self.side).add(g4.difference(struts))
 
     def meet(self, other):
         self.path.append(other.xy)
@@ -346,17 +351,3 @@ class Draw(Turtle):
         dst = {"GTL": "GBL", "GBL": "GTL"}[self.layer]
         self.via().set_layer(dst)
         return self
-
-
-# class Drawf(Draw):
-#     def defaults(self):
-#         self.layer = "GBL"
-
-#     def left(self, a):
-#         return Draw.right(self, a)
-
-#     def right(self, a):
-#         return Draw.left(self, a)
-
-#     def goxy(self, x, y):
-#         return Draw.goxy(-x, y)

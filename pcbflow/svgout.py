@@ -36,38 +36,14 @@ SVG_STYLE = {
     },
     "top_docu": {
         "layers": ["GTL", "GTO", "GTD", "DRL", "GML"],
-        "fill_colours": [
-            "indianred",
-            "darkkhaki",
-            "yellow",
-            "black",
-            "white",
-        ],
-        "line_colours": [
-            "indianred",
-            "darkkhaki",
-            "yellow",
-            "black",
-            "white",
-        ],
+        "fill_colours": ["indianred", "darkkhaki", "yellow", "black", "white",],
+        "line_colours": ["indianred", "darkkhaki", "yellow", "black", "white",],
         "opacities": [1.0, 1.0, 1.0, 1.0, 1.0],
     },
     "bottom_docu": {
         "layers": ["GBL", "GBO", "GBD", "DRL", "GML"],
-        "fill_colours": [
-            "royalblue",
-            "darkkhaki",
-            "yellow",
-            "black",
-            "white",
-        ],
-        "line_colours": [
-            "royalblue",
-            "darkkhaki",
-            "yellow",
-            "black",
-            "white",
-        ],
+        "fill_colours": ["royalblue", "darkkhaki", "yellow", "black", "white",],
+        "line_colours": ["royalblue", "darkkhaki", "yellow", "black", "white",],
         "opacities": [1.0, 1.0, 1.0, 1.0, 1.0],
     },
     "bottom": {
@@ -90,7 +66,6 @@ SVG_STYLE = {
         ],
         "opacities": [1.0, 0.3, 0.3, 1.0, 1.0, 0.0],
     },
-
     "all": {
         "layers": [
             "GBO",
@@ -168,6 +143,8 @@ def svg_write(board, filename, style="top"):
         args = {
             "fill": fill_colour,
             "fill_opacity": fill_opacity,
+            "stroke": fill_colour,
+            "stroke_opacity": 0,
             "stroke_width": 0,
         }
 
@@ -179,12 +156,13 @@ def svg_write(board, filename, style="top"):
             if len(po.interiors) == 0:
                 dwg.add(dwg.polygon(better_coords(po.exterior.coords), **args))
             else:
-                x0 = min([x for (x, y) in po.exterior.coords])
-                x1 = max([x for (x, y) in po.exterior.coords])
-                y0 = min([y for (x, y) in po.exterior.coords])
-                y1 = max([y for (x, y) in po.exterior.coords])
+                bc = better_coords(po.exterior.coords)
+                x0 = min([x for (x, y) in bc])
+                x1 = max([x for (x, y) in bc])
+                y0 = min([y for (x, y) in bc])
+                y1 = max([y for (x, y) in bc])
                 xm = (x0 + x1) / 2
-                eps = 0.00
+                eps = 0.0
                 renderpoly(po.intersection(sg.box(x0, y0, xm + eps, y1)))
                 renderpoly(po.intersection(sg.box(xm - eps, y0, x1, y1)))
 
@@ -192,10 +170,10 @@ def svg_write(board, filename, style="top"):
             renderpoly(gto)
         else:
             [renderpoly(po) for po in gto]
-
         args = {
             "stroke": line_colour,
             "fill_opacity": 0.0,
+            "stroke_opacity": fill_opacity,
             "stroke_width": 0.1,
         }
         if not isinstance(gto, sg.Polygon):

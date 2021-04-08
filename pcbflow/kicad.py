@@ -36,7 +36,10 @@ class KiCadPart(Part):
             p0 = dc.copy().goxy(*line["coords"][0])
             p1 = dc.copy().goxy(*line["coords"][1])
             ls.append(sg.LineString([p0.xy, p1.xy]))
-            g = sg.LineString([p0.xy, p1.xy]).buffer(self.board.drc.silk_width / 2)
+            width = self.board.drc.silk_width
+            if line["width"] > 0:
+                width = line["width"]
+            g = sg.LineString([p0.xy, p1.xy]).buffer(width / 2)
             if "GTO" in line["layers"]:
                 self.board.get_silk_layer(side=self.side).add(g)
             elif "GTD" in line["layers"]:
@@ -52,7 +55,7 @@ class KiCadPart(Part):
                 no_paste = True if "GTP" not in pad["layers"] else False
                 self.smd_pad(p, ignore_paste=no_paste)
             elif "GTP" in pad["layers"]:
-                self.board.get_paste_layer(side=self.side).add(p.poly())                
+                self.board.get_paste_layer(side=self.side).add(p.poly())
 
         for pad in self.pin_pads:
             diameter = pad["size"][0]
@@ -119,7 +122,9 @@ class KiCadPart(Part):
                         size = float(e["size"][0]), float(e["size"][1])
                     elif "layers" in e:
                         layers = self._map_layers(e["layers"])
-            self.smd_pads.append({"name": name, "xy": xy, "size": size, "layers": layers})
+            self.smd_pads.append(
+                {"name": name, "xy": xy, "size": size, "layers": layers}
+            )
 
         elif items[1] == "thru_hole":
             shape = items[2]
@@ -159,6 +164,7 @@ class KiCadPart(Part):
                 self._parse_fp_line(v["fp_line"])
             if "pad" in v:
                 self._parse_pad(v["pad"])
+
 
 # TODO   (fp_arc (start 0 0) (end 0 4) (angle -65) (layer F.Fab) (width 0.1))
 # TODO    (fp_circle (center 0 0) (end 1.12 0) (layer F.Fab) (width 0.1))

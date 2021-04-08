@@ -124,6 +124,13 @@ class Board:
                     return k
                 return self.layers[k]
 
+    def get_mask_layer(self, side="top", as_name=False):
+        for k, v in self.layers.items():
+            if v.is_mask and side.title()[:3] in v.function:
+                if as_name:
+                    return k
+                return self.layers[k]
+
     def parts_str(self):
         s = []
         for k, v in self.parts.items():
@@ -313,9 +320,6 @@ class Board:
 
     def DC(self, xy, d=0):
         return Draw(self, xy, d)
-
-    def DCf(self, xy, d=0):
-        return Drawf(self, xy, d)
 
     def fill_layer(self, layer, netname):
         if layer not in self.layers:

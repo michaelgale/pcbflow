@@ -15,7 +15,6 @@ def better_float(x, tolerance=6):
 
 
 def better_coords(coords):
-    return coords
     nc = []
     for c in coords:
         nc.append((better_float(c[0]), better_float(c[1])))

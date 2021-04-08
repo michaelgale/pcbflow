@@ -7,14 +7,14 @@ from pcbflow import *
 if __name__ == "__main__":
 
     brd = Board((50, 50))
-    EaglePart(
-        brd.DC((10, 10)),
-        libraryfile="sparkfun.lbr",
-        partname="USB-B-SMT",
-        side="bottom",
+    EaglePart(brd.DC((10, 40)), libraryfile="sparkfun.lbr", partname="TSSOP-24")
+    EaglePart(brd.DC((35, 25)), libraryfile="sparkfun.lbr", partname="ARDUINO_MINI")
+    usb_con = EaglePart(
+        brd.DC((10, 10)), libraryfile="sparkfun.lbr", partname="USB-B-SMT", side="top"
     )
-    EaglePart(brd.DC((10, 10)), libraryfile="sparkfun.lbr", partname="TSSOP-24")
-    EaglePart(brd.DC((30, 25)), libraryfile="sparkfun.lbr", partname="ARDUINO_MINI")
+    # usb_con.s("D-").w("r 90 f 5 l 90 f 10").wire(width=0.25)
+    usb_con.pads[3].w("r 90 f 5 l 90 f 10").wire(width=0.25)
+    print(usb_con)
 
     brd.add_outline()
     brd.fill_layer("GTL", "GND")
