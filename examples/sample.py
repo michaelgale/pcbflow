@@ -21,6 +21,9 @@ if __name__ == "__main__":
     C0603(brd.DC((40, 7)).right(90), "0.1 uF", side="top").fanout("VCC", "GND")
     C0603(brd.DC((47, 8)).right(90), "0.1 uF", side="bottom").fanout("VCC", None)
 
+    for x in range(5):
+        brd.add_part((5 + x*3, 4), C0402, side="top")
+
     brd.add_part((25, 25), SOT23, side="bottom")
     brd.add_part((25, 8), SOT223, side="bottom")
     brd.add_part((40, 5), SOIC8, side="bottom")
