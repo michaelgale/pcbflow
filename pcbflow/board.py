@@ -391,9 +391,11 @@ class Board:
 
         if gerber:
             for (name, layer) in self.layers.items():
+                print("Rendering Gerber %s..." % (name))
                 with open(assetpath + "." + name, "wt") as f:
                     layer.save(f)
             ls = "1,%d" % (len(self.get_copper_layers()))
+            print("Rendering excellon drill files...")
             with open(assetpath + "_PTH.DRL", "wt") as f:
                 excellon(f, self.holes, "Plated,%s,PTH" % (ls))
             with open(assetpath + "_NPTH.DRL", "wt") as f:
@@ -401,11 +403,15 @@ class Board:
 
         if svg:
             from pcbflow.svgout import svg_write
-
+            print("Rendering preview_top.svg...")
             svg_write(self, assetpath + "_preview_top.svg", style="top")
+            print("Rendering preview_top_docu.svg...")
             svg_write(self, assetpath + "_preview_top_docu.svg", style="top_docu")
+            print("Rendering preview_bot.svg...")
             svg_write(self, assetpath + "_preview_bot.svg", style="bottom")
+            print("Rendering preview_bot_docu.svg...")
             svg_write(self, assetpath + "_preview_bot_docu.svg", style="bottom_docu")
+            print("Rendering preview_all.svg...")
             svg_write(self, assetpath + "_preview_all.svg", style="all")
 
         if povray:

@@ -10,6 +10,18 @@ import shapely.ops as so
 
 from pcbflow import *
 
+def token_splitter(tokens):
+    exp_tokens = []
+    tokens = tokens.lower().split()
+    for t in tokens:
+        if len(t) > 1 and t[0] in ["f", "r", "l"]:
+            token = t[0]
+            other = t[1:]
+            exp_tokens.append(token)
+            exp_tokens.append(other)
+        else:
+            exp_tokens.append(t)
+    return exp_tokens
 
 class Turtle:
     def __repr__(self):
@@ -19,7 +31,7 @@ class Turtle:
         return self.turtle(s, layer=layer)
 
     def turtle(self, s, layer="GTL"):
-        tokens = s.split()
+        tokens = token_splitter(s)
         cmds1 = {
             "i": self.inside,
             "o": self.outside,
