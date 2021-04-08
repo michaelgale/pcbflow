@@ -203,12 +203,12 @@ class Board:
         poly = sg.Polygon(coords)
         self.layers[layer].add(poly, name)
 
-    def add_part(self, xy, part, side="top", rot=None, val=None):
+    def add_part(self, xy, part, side="top", rot=None, val=None, **kwargs):
         if isinstance(xy, Draw):
-            return part(xy, val=val, side=side)
+            return part(xy, val=val, side=side, **kwargs)
         if rot is not None:
-             return part(self.DC(xy).right(rot), val=val, side=side)
-        return part(self.DC(xy), val=val, side=side)
+            return part(self.DC(xy).right(rot), val=val, side=side, **kwargs)
+        return part(self.DC(xy), val=val, side=side, **kwargs)
 
     def add_hole(self, xy, diameter):
         self.npth[diameter].append(xy)
