@@ -15,14 +15,13 @@ SCALE_FACTOR = 4
 
 SVG_STYLE = {
     "top": {
-        "layers": ["GTL", "GTS", "GTP", "GTO", "DRL", "GML", "GTD"],
+        "layers": ["GTL", "GTS", "GTP", "GTO", "DRL", "GML"],
         "fill_colours": [
             "indianred",
             "dimgray",
             "mintcream",
             "darkkhaki",
             "black",
-            "white",
             "white",
         ],
         "line_colours": [
@@ -32,9 +31,44 @@ SVG_STYLE = {
             "darkkhaki",
             "black",
             "slategray",
+        ],
+        "opacities": [1.0, 0.3, 0.3, 1.0, 1.0, 0.0],
+    },
+    "top_docu": {
+        "layers": ["GTL", "GTO", "GTD", "DRL", "GML"],
+        "fill_colours": [
+            "indianred",
+            "darkkhaki",
+            "yellow",
+            "black",
             "white",
         ],
-        "opacities": [1.0, 0.3, 0.3, 1.0, 1.0, 0.0, 1.0],
+        "line_colours": [
+            "indianred",
+            "darkkhaki",
+            "yellow",
+            "black",
+            "white",
+        ],
+        "opacities": [1.0, 1.0, 1.0, 1.0, 1.0],
+    },
+    "bottom_docu": {
+        "layers": ["GBL", "GBO", "GBD", "DRL", "GML"],
+        "fill_colours": [
+            "royalblue",
+            "darkkhaki",
+            "yellow",
+            "black",
+            "white",
+        ],
+        "line_colours": [
+            "royalblue",
+            "darkkhaki",
+            "yellow",
+            "black",
+            "white",
+        ],
+        "opacities": [1.0, 1.0, 1.0, 1.0, 1.0],
     },
     "bottom": {
         "layers": ["GBL", "GBS", "GBP", "GBO", "DRL", "GML"],
@@ -56,11 +90,12 @@ SVG_STYLE = {
         ],
         "opacities": [1.0, 0.3, 0.3, 1.0, 1.0, 0.0],
     },
+
     "all": {
         "layers": [
             "GBO",
-            "GBP",
             "GBS",
+            "GBP",
             "GBL",
             "GTL",
             "GTS",
@@ -71,8 +106,8 @@ SVG_STYLE = {
         ],
         "fill_colours": [
             "darkkhaki",
-            "mintcream",
             "dimgray",
+            "mintcream",
             "royalblue",
             "indianred",
             "dimgray",
@@ -83,8 +118,8 @@ SVG_STYLE = {
         ],
         "line_colours": [
             "darkkhaki",
-            "lightcyan",
             "darkgrey",
+            "lightcyan",
             "royalblue",
             "indianred",
             "darkgrey",
@@ -93,12 +128,12 @@ SVG_STYLE = {
             "black",
             "slategray",
         ],
-        "opacities": [1.0, 1.0, 0.4, 0.5, 0.4, 0.3, 0.2, 1.0, 1.0, 0.0],
+        "opacities": [1.0, 0.5, 0.5, 0.4, 0.4, 0.3, 0.2, 1.0, 1.0, 0.0],
     },
 }
 
 
-def svg_write(board, filename, side="top", include_docu=False):
+def svg_write(board, filename, style="top"):
     gml = board.layers["GML"].lines
     block = sg.Polygon(gml[-1], gml[:-1])
     block = block.buffer(1).buffer(-1)
@@ -178,18 +213,15 @@ def svg_write(board, filename, side="top", include_docu=False):
         dp = so.unary_union([sg.Point(xy).buffer(d / 2) for xy in xys])
         board.layers["DRL"].add(dp)
 
-    if side not in SVG_STYLE:
-        raise KeyError("Cannot find a style called %s in SVG_STYLE" % (side))
-    style = SVG_STYLE[side.lower()]
+    if style not in SVG_STYLE:
+        raise KeyError("Cannot find a style called %s in SVG_STYLE" % (style))
+    style = SVG_STYLE[style.lower()]
     for layer, fc, lc, op in zip(
         style["layers"],
         style["fill_colours"],
         style["line_colours"],
         style["opacities"],
     ):
-        if not include_docu and (layer == "GTD" or layer == "GBD"):
-            pass
-        else:
-            renderlayer(layer, fill_colour=fc, line_colour=lc, fill_opacity=op)
+        renderlayer(layer, fill_colour=fc, line_colour=lc, fill_opacity=op)
 
     dwg.save()

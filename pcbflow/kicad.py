@@ -23,6 +23,7 @@ class KiCadPart(Part):
         self.libraryfile = libraryfile
         self.smd_pads = []
         self.pin_pads = []
+        self.polys = []
         self.lines = []
         self.labels = []
         self.docu = []
@@ -40,12 +41,18 @@ class KiCadPart(Part):
                 self.board.get_silk_layer(side=self.side).add(g)
             elif "GTD" in line["layers"]:
                 self.board.get_docu_layer(side=self.side).add(g)
+            elif "GTP" in line["layers"]:
+                self.board.get_paste_layer(side=self.side).add(g)
 
         for pad in self.smd_pads:
             p = dc.copy().goxy(*pad["xy"])
             p.rect(*pad["size"])
-            p.set_name(pad["name"])
-            self.smd_pad(p)
+            if "GTL" in pad["layers"]:
+                p.set_name(pad["name"])
+                no_paste = True if "GTP" not in pad["layers"] else False
+                self.smd_pad(p, ignore_paste=no_paste)
+            elif "GTP" in pad["layers"]:
+                self.board.get_paste_layer(side=self.side).add(p.poly())                
 
         for pad in self.pin_pads:
             diameter = pad["size"][0]
@@ -71,6 +78,9 @@ class KiCadPart(Part):
             if layer in KI_LAYER_DICT:
                 ml.append(KI_LAYER_DICT[layer])
         return ml
+
+    def _parse_fp_circle(self, items):
+        pass
 
     def _parse_fp_line(self, items):
         coords = []
@@ -109,8 +119,8 @@ class KiCadPart(Part):
                         size = float(e["size"][0]), float(e["size"][1])
                     elif "layers" in e:
                         layers = self._map_layers(e["layers"])
-            if "GTL" in layers:
-                self.smd_pads.append({"name": name, "xy": xy, "size": size})
+            self.smd_pads.append({"name": name, "xy": xy, "size": size, "layers": layers})
+
         elif items[1] == "thru_hole":
             shape = items[2]
             for e in items[3:]:
@@ -145,8 +155,27 @@ class KiCadPart(Part):
             md[k] = {v[0]: vd}
 
         for k, v in md.items():
-            # print(k, v)
             if "fp_line" in v:
                 self._parse_fp_line(v["fp_line"])
             if "pad" in v:
                 self._parse_pad(v["pad"])
+
+# TODO   (fp_arc (start 0 0) (end 0 4) (angle -65) (layer F.Fab) (width 0.1))
+# TODO    (fp_circle (center 0 0) (end 1.12 0) (layer F.Fab) (width 0.1))
+# TODO   (fp_text reference REF** (at 0 -2.82) (layer F.SilkS)
+#     (effects (font (size 1 1) (thickness 0.15)))
+#   )
+#   (fp_poly (pts (xy 2.45 -2.51) (xy 4.45 -2.51) (xy 4.45 -5.15) (xy 7.15 -5.15)
+#     (xy 7.15 -2.51) (xy 9.15 -2.51) (xy 9.15 -5.15) (xy 11.85 -5.15)
+#     (xy 11.85 -0.71) (xy 11.35 -0.71) (xy 11.35 -4.65) (xy 9.65 -4.65)
+#     (xy 9.65 -2.01) (xy 6.65 -2.01) (xy 6.65 -4.65) (xy 4.95 -4.65)
+#     (xy 4.95 -2.01) (xy 1.95 -2.01) (xy 1.95 -4.65) (xy 0.25 -4.65)
+#     (xy 0.25 0.25) (xy -0.25 0.25) (xy -0.25 -4.65) (xy -1.65 -4.65)
+#     (xy -1.65 0.25) (xy -2.55 0.25) (xy -2.55 0.006785) (xy -2.247583 0.006785)
+#     (xy -2.237742 0.054395) (xy -2.213674 0.096797) (xy -2.175731 0.129581) (xy -2.167819 0.133935)
+#     (xy -2.125156 0.146043) (xy -2.076637 0.1453) (xy -2.031122 0.1324) (xy -2.012511 0.121787)
+#     (xy -1.978868 0.086553) (xy -1.958309 0.041368) (xy -1.951778 -0.008158) (xy -1.960218 -0.056417)
+#     (xy -1.977112 -0.088643) (xy -2.012372 -0.121313) (xy -2.057682 -0.141408) (xy -2.107267 -0.147982)
+#     (xy -2.155353 -0.140092) (xy -2.188245 -0.123186) (xy -2.223185 -0.086416) (xy -2.242847 -0.041622)
+#     (xy -2.247583 0.006785) (xy -2.55 0.006785) (xy -2.55 -5.15) (xy 2.45 -5.15)
+#     (xy 2.45 -2.51)) (layer F.Cu) (width 0))

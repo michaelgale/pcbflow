@@ -6,7 +6,7 @@ from pcbflow import *
 
 if __name__ == "__main__":
 
-    brd = Board((50, 30))
+    brd = Board((50, 50))
     EaglePart(
         brd.DC((10, 10)),
         libraryfile="sparkfun.lbr",
@@ -14,7 +14,7 @@ if __name__ == "__main__":
         side="bottom",
     )
     EaglePart(brd.DC((10, 10)), libraryfile="sparkfun.lbr", partname="TSSOP-24")
-    EaglePart(brd.DC((25, 15)), libraryfile="sparkfun.lbr", partname="ARDUINO_MINI")
+    EaglePart(brd.DC((30, 25)), libraryfile="sparkfun.lbr", partname="ARDUINO_MINI")
 
     brd.add_outline()
     brd.fill_layer("GTL", "GND")

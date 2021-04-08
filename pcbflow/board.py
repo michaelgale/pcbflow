@@ -117,6 +117,13 @@ class Board:
                     return k
                 return self.layers[k]
 
+    def get_paste_layer(self, side="top", as_name=False):
+        for k, v in self.layers.items():
+            if v.is_paste and side.title()[:3] in v.function:
+                if as_name:
+                    return k
+                return self.layers[k]
+
     def parts_str(self):
         s = []
         for k, v in self.parts.items():
@@ -389,9 +396,11 @@ class Board:
         if svg:
             from pcbflow.svgout import svg_write
 
-            svg_write(self, assetpath + "_preview_top.svg", side="top")
-            svg_write(self, assetpath + "_preview_bot.svg", side="bottom")
-            svg_write(self, assetpath + "_preview_all.svg", side="all")
+            svg_write(self, assetpath + "_preview_top.svg", style="top")
+            svg_write(self, assetpath + "_preview_top_docu.svg", style="top_docu")
+            svg_write(self, assetpath + "_preview_bot.svg", style="bottom")
+            svg_write(self, assetpath + "_preview_bot_docu.svg", style="bottom_docu")
+            svg_write(self, assetpath + "_preview_all.svg", style="all")
 
         if povray:
             substrate = self.substrate()

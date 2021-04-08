@@ -18,7 +18,7 @@ from .util import col_print
 LAYER_DIMENSION = "20"
 LAYER_TPLACE = "21"
 LAYER_TDOCU = "51"
-DOC_LAYERS = (LAYER_DIMENSION, LAYER_TPLACE)
+DOC_LAYERS = (LAYER_DIMENSION, LAYER_TPLACE, LAYER_TDOCU)
 
 
 def list_lbr_packages(fn):
@@ -201,6 +201,10 @@ class EaglePart(Part):
         if ls[LAYER_DIMENSION]:
             g = so.linemerge(ls[LAYER_DIMENSION])
             self.board.layers["GML"].add(g)
+
+        if ls[LAYER_TDOCU]:
+            g = so.linemerge(ls[LAYER_TDOCU]).buffer(self.board.drc.silk_width / 2)
+            self.board.get_docu_layer(side=self.side).add(g)
 
         if self.use_silk and ls[LAYER_TPLACE]:
             g = so.linemerge(ls[LAYER_TPLACE]).buffer(self.board.drc.silk_width / 2)
