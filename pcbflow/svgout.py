@@ -15,13 +15,14 @@ SCALE_FACTOR = 4
 
 SVG_STYLE = {
     "top": {
-        "layers": ["GTL", "GTS", "GTP", "GTO", "DRL", "GML"],
+        "layers": ["GTL", "GTS", "GTP", "GTO", "DRL", "GML", "GTD"],
         "fill_colours": [
             "indianred",
             "dimgray",
             "mintcream",
             "darkkhaki",
             "black",
+            "white",
             "white",
         ],
         "line_colours": [
@@ -31,8 +32,9 @@ SVG_STYLE = {
             "darkkhaki",
             "black",
             "slategray",
+            "white",
         ],
-        "opacities": [1.0, 0.3, 0.3, 1.0, 1.0, 0.0],
+        "opacities": [1.0, 0.3, 0.3, 1.0, 1.0, 0.0, 1.0],
     },
     "bottom": {
         "layers": ["GBL", "GBS", "GBP", "GBO", "DRL", "GML"],
@@ -96,7 +98,7 @@ SVG_STYLE = {
 }
 
 
-def svg_write(board, filename, side="top"):
+def svg_write(board, filename, side="top", include_docu=False):
     gml = board.layers["GML"].lines
     block = sg.Polygon(gml[-1], gml[:-1])
     block = block.buffer(1).buffer(-1)
@@ -185,6 +187,9 @@ def svg_write(board, filename, side="top"):
         style["line_colours"],
         style["opacities"],
     ):
-        renderlayer(layer, fill_colour=fc, line_colour=lc, fill_opacity=op)
+        if not include_docu and (layer == "GTD" or layer == "GBD"):
+            pass
+        else:
+            renderlayer(layer, fill_colour=fc, line_colour=lc, fill_opacity=op)
 
     dwg.save()

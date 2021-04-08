@@ -10,6 +10,7 @@ import shapely.ops as so
 from pcbflow import *
 
 DEFAULT_LAYER_ORDER = [
+    "GTD",
     "GML",
     "GTP",
     "GTO",
@@ -26,56 +27,69 @@ DEFAULT_LAYER_ORDER = [
     "GBS",
     "GBO",
     "GBP",
+    "GBD",
 ]
 
 DEFAULT_LAYERS = {
+    "GTD": {
+        "desc": "Top Documentation",
+        "function": "Document,Top",
+        "is_document": True,
+        "z_order": 0,
+    },
     "GTP": {
         "desc": "Top Paste",
         "function": "Paste,Top",
         "is_paste": True,
-        "z_order": 0,
+        "z_order": 1,
     },
     "GTO": {
         "desc": "Top Silkscreen",
         "function": "Legend,Top",
         "is_silk": True,
-        "z_order": 1,
+        "z_order": 2,
     },
     "GTS": {
         "desc": "Top Solder Mask",
         "function": "Soldermask,Top",
         "is_mask": True,
-        "z_order": 2,
+        "z_order": 3,
     },
     "GTL": {
         "desc": "Top Copper",
         "function": "Copper,L1,Top",
         "is_copper": True,
-        "z_order": 3,
+        "z_order": 4,
     },
     "GBL": {
         "desc": "Bottom Copper",
         "function": "Copper,L2,Bot",
         "is_copper": True,
-        "z_order": 4,
+        "z_order": 5,
     },
     "GBS": {
         "desc": "Bottom Solder Mask",
         "function": "Soldermask,Bot",
         "is_mask": True,
-        "z_order": 5,
+        "z_order": 6,
     },
     "GBO": {
         "desc": "Bottom Silkscreen",
         "function": "Legend,Bot",
         "is_silk": True,
-        "z_order": 6,
+        "z_order": 7,
     },
     "GBP": {
         "desc": "Bottom Paste",
         "function": "Paste,Bot",
         "is_paste": True,
-        "z_order": 7,
+        "z_order": 8,
+    },
+    "GBD": {
+        "desc": "Bottom Documentation",
+        "function": "Document,Bottom",
+        "is_document": True,
+        "z_order": 9,
     },
 }
 
@@ -93,6 +107,7 @@ class Layer:
         self.is_paste = False
         self.is_inner = False
         self.is_outline = False
+        self.is_document = False
         self.connected = []
         self.keepouts = []
         self.preview_poly = None
@@ -101,7 +116,7 @@ class Layer:
 
     def __str__(self):
         return (
-            "%-16s Order: %d Inner: %-5s Cu: %-5s Mask: %-5s Paste: %-5s Silk: %-5s Outline: %-5s"
+            "%-16s Order: %d Inner: %-5s Cu: %-5s Mask: %-5s Paste: %-5s Silk: %-5s Outline: %-5s Docu: %-5s"
             % (
                 self.function,
                 self.z_order,
@@ -111,6 +126,7 @@ class Layer:
                 self.is_paste,
                 self.is_silk,
                 self.is_outline,
+                self.is_document,
             )
         )
 

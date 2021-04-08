@@ -44,7 +44,10 @@ def show_lbr_package(fn, package):
             for va in v:
                 d[va.tag] += 1
                 if va.tag in ("pad", "smd"):
-                    conn[va.attrib["name"]] = (float(va.attrib["x"]), float(va.attrib["y"]))
+                    conn[va.attrib["name"]] = (
+                        float(va.attrib["x"]),
+                        float(va.attrib["y"]),
+                    )
             print("Package %s in %s : " % (package, fn))
             s = []
             for ka, va in d.items():

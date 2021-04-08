@@ -82,7 +82,7 @@ class Board:
     def get_smd_pad_layers(self, side="top", as_names=False, ignore_paste=False):
         layers = []
         for k, v in self.layers.items():
-            if side.title()[:3] in v.function and not v.is_silk:
+            if side.title()[:3] in v.function and not v.is_silk and not v.is_document:
                 if ignore_paste and v.is_paste:
                     pass
                 elif as_names:
@@ -106,6 +106,13 @@ class Board:
     def get_silk_layer(self, side="top", as_name=False):
         for k, v in self.layers.items():
             if v.is_silk and side.title()[:3] in v.function:
+                if as_name:
+                    return k
+                return self.layers[k]
+
+    def get_docu_layer(self, side="top", as_name=False):
+        for k, v in self.layers.items():
+            if v.is_document and side.title()[:3] in v.function:
                 if as_name:
                     return k
                 return self.layers[k]

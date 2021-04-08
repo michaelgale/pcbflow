@@ -21,8 +21,10 @@ def better_coords(coords):
         nc.append((better_float(c[0]), better_float(c[1])))
     return nc
 
+
 def col_print(items):
     print(col_str(items))
+
 
 def col_str(items):
     cs = []

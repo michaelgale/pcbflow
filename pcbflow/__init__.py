@@ -36,6 +36,7 @@ from .drc import DRC
 from .part import Part, pretty_parts
 from .footprints import *
 from .eagle import EaglePart, list_lbr_packages, show_lbr_package
+from .kicad import KiCadPart
 from .layer import Layer, OutlineLayer, DEFAULT_LAYERS, DEFAULT_LAYER_ORDER
 from .draw import Turtle, Draw
 from .board import Board
