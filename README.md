@@ -195,15 +195,21 @@ Parts can be added in three ways:
    #   Part classes instantiate themselves directly from DC--this allows the part
    #   to derive its location, orientation, etc.
    R0603(brd.DC((20, 10)), "4.7k", side="bottom")
+   # this is also equivalent:
+   brd.add_part((20, 10), R0603, val="4.7k", side="bottom")
 
    # adding an Eagle part called USB-B-SMT from sparkfun.lbr
    # chaining the right(90) method to DC places the part 90 deg rotated
    EaglePart(brd.DC((10, 10)).right(90), libraryfile="sparkfun.lbr", partname="USB-B-SMT", side="top")
+   # this is also equivalent:
+   brd.add_part((10, 10), EaglePart, libraryfile="sparkfun.lbr", partname="USB-B-SMT", side="top", rot=90)
 
    # adding a KiCAD footprint part from file kc1.kicad_mod
    # specifying the side="bottom" automatically maps the footprint copper, mask, paste,
    # and silkscreen layers to the bottom (automatically mirroring in the horizontal axis)
    KiCadPart(brd.DC((10, 10)), libraryfile="kc1.kicad_mod", side="bottom")
+   # this is also equivalent:
+   brd.add_part((10, 10), KiCadPart, libraryfile="kc1.kicad_mod", side="bottom")
 
    # assigning a variable to a placed part allow us to reference it again
    # later for tasks such as renaming pads, routing signals from a pad location,
