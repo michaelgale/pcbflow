@@ -6,6 +6,46 @@
 import os
 import decimal
 
+REFDES_DICT = {
+    "U": "BGA FBGA TFBGA UFBGA WLP XBGA XFBGA Xilinx LFCSP ST_WLCSP WLCSP DFN HVQFN \
+          MLF QFN ST_UFQFPN ST_UQFN TDFN TQFN UDFN UFQFPN UQFN VDFN VQFN WDFN WQFN \
+          DIP SMDIP PLCC LGA EQFP HTQFP LQFP MQFP PQFP TQFP VQFP HSOP HTSOP HTSSOP \
+          HVSSOP MFSOP6 MSOP PSOP QSOP SC SO SOIC SOJ SOP SSO SSOP TSOP TSSOP VSO \
+          VSSOP HVSON USON VSON VSONP WSON X2SON TSOC SC SOT SuperSOT TDSON TO \
+          TSOT SIPAK",
+    "B": "BatteryHolder Battery",
+    "C": "CP C Capacitor",
+    "D": "D Diode LED HDSP DA04 DA56 DE113 DE114 DE122 DE170 CC56 KCSC02 LTC SA15 OLED LCD HDSM EA CR2013",
+    "F": "Fuse Fuseholder",
+    "K": "Relay",
+    "L": "L Inductor",
+    "P": "Pin",
+    "R": "R Resistor Potentiometer Varistor",
+    "S": "SW ",
+    "J": "Connector PinHeader Banana RJ45 RJ12 RJ14 USB TerminalBlock Molex JST Harwin Hirose IDC JAE FFC FPC HDMI DIN Dsub Coaxial BarrelJack Jack ",
+    "T": "Transformer Pulse Autotransformer ",
+    "Y": "Crystal Oscillator",
+}
+
+
+def infer_family(x):
+    fp = x.split("_")
+    if len(fp) > 1:
+        fp0 = fp[0].split("-")
+        if len(fp0) > 1:
+            x = fp0[0]
+        else:
+            x = fp[0]
+    else:
+        fp0 = x.split("-")
+        if len(fp0) > 1:
+            x = fp0[0]
+
+    for k, v in REFDES_DICT.items():
+        if x in v:
+            return k
+    return ""
+
 
 def better_float(x, tolerance=6):
     ns = str(

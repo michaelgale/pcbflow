@@ -13,7 +13,7 @@ import shapely.affinity as sa
 import shapely.ops as so
 
 from .part import Part
-from .util import col_print
+from .util import col_print, infer_family
 
 LAYER_DIMENSION = "20"
 LAYER_TPLACE = "21"
@@ -94,6 +94,8 @@ class EaglePart(Part):
         if self.partname not in packages:
             raise ValueError("Part not found in library")
         self.pa = packages[self.partname]
+        self.footprint = self.partname
+        self.family = infer_family(self.partname)
         super().__init__(dc, val, source, **kwargs)
         self.labels = {}
         self.terminals = {}

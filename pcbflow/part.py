@@ -79,7 +79,7 @@ class Part:
                     % (i, name, better_float(p.xy[0]), better_float(p.xy[1]))
                 )
         s.append(
-            "Part: %s %s %s %-6s (%6.2f, %6.2f) / %.0f deg %2d pads"
+            "Part[%s] %s %s %s(%6.2f, %6.2f) / %.0f deg %2d pads"
             % (
                 self.id,
                 self.footprint,

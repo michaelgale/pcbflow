@@ -27,10 +27,10 @@ class KiCadPart(Part):
         self.lines = []
         self.labels = []
         self.docu = []
+        self.parse()
         super().__init__(dc, val, source, **kwargs)
 
     def place(self, dc):
-        self.parse()
         ls = []
         for line in self.lines:
             p0 = dc.copy().goxy(*line["coords"][0])
@@ -147,6 +147,12 @@ class KiCadPart(Part):
     def parse(self):
         with open(self.libraryfile, "r") as f:
             module = parseSexp(f.read())
+        for idx, item in enumerate(module):
+            if not isinstance(item, list):
+                if item == "module":
+                    self.footprint = module[idx + 1]
+                    self.family = infer_family(self.footprint)
+                    break
 
         d = {str(k[0]): k[1:] for k in module if isinstance(k, list)}
         md = {}
