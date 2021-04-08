@@ -12,10 +12,10 @@ from pcbflow import *
 
 def token_splitter(tokens):
     exp_tokens = []
-    tokens = tokens.lower().split()
+    tokens = tokens.split()
     for t in tokens:
-        if len(t) > 1 and t[0] in ["f", "r", "l"]:
-            token = t[0]
+        if len(t) > 1 and t[0].lower() in ["f", "r", "l", ".", ">"]:
+            token = t[0].lower()
             other = t[1:]
             exp_tokens.append(token)
             exp_tokens.append(other)
@@ -32,30 +32,31 @@ class Turtle:
 
     def turtle(self, s, layer="GTL"):
         tokens = token_splitter(s)
-        cmds1 = {
-            "i": self.inside,
-            "o": self.outside,
-            "-": lambda: self.wvia("GL2"),
-            "+": lambda: self.wvia("GL3"),
-            ".": lambda: self.wvia("GBL"),
-            "/": self.through,
-        }
-        cmds2 = {"f": self.forward, "l": self.left, "r": self.right, "v": self.via_to }
-
+        cmds1 = { "i", "o" }
+        cmds2 = { "f", "l", "r", ".", ">" }
         i = 0
         while i < len(tokens):
             t = tokens[i]
+            if t == "i":
+                self.inside()
+            elif t == "o":
+                self.outside()
+            elif t == "f":
+                self.forward(float(tokens[i + 1]))
+            elif t == "l":
+                self.left(float(tokens[i + 1]))
+            elif t == "r":
+                self.right(float(tokens[i + 1]))
+            elif t == ".":
+                self.wire()
+                self.via_to(tokens[i + 1].upper())
+            elif t == ">":
+                self.meet_at(tokens[i + 1])
+
             if t in cmds1:
-                cmds1[t]()
                 i += 1
             else:
-                if t == "v":
-                    self.wire()
-                    self.via_to(tokens[i + 1].upper())
-                else:
-                    cmds2[t](float(tokens[i + 1]))
                 i += 2
-        # self.wire(layer)
         return self
 
     def inside(self):
@@ -352,6 +353,17 @@ class Draw(Turtle):
     def meet(self, other):
         self.path.append(other.xy)
         return self.wire()
+
+    def meet_at(self, other):
+        dest = other.split("-")
+        ref, pad = dest[0], int(dest[1])
+        part = self.board.get_part(ref)
+        if part is not None:
+            loc = part.pads[pad].xy
+            (dx, dy) = self.seek(part.pads[pad])
+            self.path.append(loc)
+            return self.wire()
+        return self
 
     def _text(self, s, side, justify="centre"):
         (x, y) = self.xy

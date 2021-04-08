@@ -7,9 +7,13 @@ from pcbflow import *
 
 
 class HDMI(Part):
-    family = "J"
-    mfr = "HDMI-001"
-    source = {"LCSC": "C138388"}
+
+    def __init__(self, *args, **kwargs):
+        self.family = "J"
+        self.mfr = "HDMI-001"
+        self.source = {"LCSC": "C138388"}
+        self.footprint = "HDMI"
+        super().__init__(*args, **kwargs)
 
     def place(self, dc):
         self.chamfered(dc, 15, 11.1)

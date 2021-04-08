@@ -131,6 +131,13 @@ class Board:
                     return k
                 return self.layers[k]
 
+    def get_part(self, ref):
+        for k, v in self.parts.items():
+            for p in v:
+                if p.id == ref:
+                    return p
+        return None
+
     def parts_str(self):
         s = []
         for k, v in self.parts.items():

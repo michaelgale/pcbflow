@@ -6,15 +6,12 @@ from pcbflow import *
 
 if __name__ == "__main__":
     brd = Board((55, 30))
+    brd.add_inner_copper_layer(2)
 
-    # These are the same:
-    # HDMI(brd.DC((5, 15)).right(90), side="top")
-    # brd.add_part((5, 15), HDMI, side="top", rot=90)
-
-    brd.add_part((5, 15), HDMI, side="top", rot=90)
+    brd.add_part((5, 15), HDMI, side="top", rot=90, family="J")
     brd.add_part((32, 15), QFN64, side="top")
-    brd.add_part((15, 18), R0603, side="top")
-    brd.add_part((15, 12), R0603, side="top", val="4.7k")
+    rx = brd.add_part((15, 18), R0603, side="top")
+    ry = brd.add_part((15, 12), R0603, side="top", val="4.7k")
     brd.add_part((15, 25), R0603, side="top", val="200", rot=90).fanout("VCC", None)
     C0603(brd.DC((35, 23)), "0.1 uF", side="top").fanout("GND", "VCC")
     C0603(brd.DC((41, 22)), "0.1 uF", side="bottom").fanout("GND", None)
@@ -34,8 +31,11 @@ if __name__ == "__main__":
         side="top",
     )
     for p in ["D+", "D-"]:
-        usb_con.pad(p).turtle("R90 f2 r 45 f1 L45 f 2 v GBL f 2").wire()
+        usb_con.pad(p).turtle("R90 f2 r 45 f1 L45 f 2 .GBL f 2").wire()
+    rx.pads[1].turtle("o f5 l45 f1.02 r45 f3 > U1-1").wire()
+    ry.pads[1].turtle("o f5 l45 f2 l45 .GP3 f2 . GTL r45 f4 > U1-2").wire()
 
+    brd.add_named_rect((27, 25), (40, 10), "GP2", "GND")
     brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GBL", "VCC")

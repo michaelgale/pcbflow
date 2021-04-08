@@ -72,6 +72,8 @@ SVG_STYLE = {
             "GBS",
             "GBP",
             "GBL",
+            "GP2",
+            "GP3",
             "GTL",
             "GTS",
             "GTP",
@@ -84,6 +86,8 @@ SVG_STYLE = {
             "dimgray",
             "mintcream",
             "royalblue",
+            "chocolate",
+            "green",
             "indianred",
             "dimgray",
             "mintcream",
@@ -96,6 +100,8 @@ SVG_STYLE = {
             "darkgrey",
             "lightcyan",
             "royalblue",
+            "chocolate",
+            "green",
             "indianred",
             "darkgrey",
             "mintcream",
@@ -103,7 +109,7 @@ SVG_STYLE = {
             "black",
             "slategray",
         ],
-        "opacities": [1.0, 0.5, 0.5, 0.4, 0.4, 0.3, 0.2, 1.0, 1.0, 0.0],
+        "opacities": [1.0, 0.5, 0.5, 0.4, 0.4, 0.4, 0.4, 0.3, 0.2, 1.0, 1.0, 0.0],
     },
 }
 
@@ -200,6 +206,7 @@ def svg_write(board, filename, style="top"):
         style["line_colours"],
         style["opacities"],
     ):
-        renderlayer(layer, fill_colour=fc, line_colour=lc, fill_opacity=op)
+        if layer in board.layers:
+            renderlayer(layer, fill_colour=fc, line_colour=lc, fill_opacity=op)
 
     dwg.save()
