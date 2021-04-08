@@ -34,7 +34,7 @@ if __name__ == "__main__":
         side="top",
     )
     for p in ["D+", "D-"]:
-        usb_con.pad(p).turtle("R90 f2 r 45 f1 L45 f 2").wire()
+        usb_con.pad(p).turtle("R90 f2 r 45 f1 L45 f 2 v GBL f 2").wire()
 
     brd.add_outline()
     brd.fill_layer("GTL", "GND")

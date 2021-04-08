@@ -40,7 +40,7 @@ class Turtle:
             ".": lambda: self.wvia("GBL"),
             "/": self.through,
         }
-        cmds2 = {"f": self.forward, "l": self.left, "r": self.right}
+        cmds2 = {"f": self.forward, "l": self.left, "r": self.right, "v": self.via_to }
 
         i = 0
         while i < len(tokens):
@@ -49,7 +49,11 @@ class Turtle:
                 cmds1[t]()
                 i += 1
             else:
-                cmds2[t](float(tokens[i + 1]))
+                if t == "v":
+                    self.wire()
+                    self.via_to(tokens[i + 1].upper())
+                else:
+                    cmds2[t](float(tokens[i + 1]))
                 i += 2
         # self.wire(layer)
         return self
@@ -281,6 +285,10 @@ class Draw(Turtle):
 
     def drill(self, d):
         self.board.add_drill(self.xy, d)
+
+    def via_to(self, next_layer):
+        self.via()
+        self.layer = next_layer
 
     def via(self, connect=None):
         dv = self.board.drc.via_drill / 2 + self.board.drc.via_annular_ring
