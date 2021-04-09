@@ -15,20 +15,24 @@ REFDES_DICT = {
           TSOT SIPAK",
     "B": "BatteryHolder Battery",
     "C": "CP C Capacitor",
-    "D": "D Diode LED HDSP DA04 DA56 DE113 DE114 DE122 DE170 CC56 KCSC02 LTC SA15 OLED LCD HDSM EA CR2013",
+    "D": "D Diode LED HDSP DA04 DA56 DE113 DE114 DE122 DE170 CC56 KCSC02 LTC SA15 \
+          OLED LCD HDSM EA CR2013",
     "F": "Fuse Fuseholder",
     "K": "Relay",
     "L": "L Inductor",
     "P": "Pin",
     "R": "R Resistor Potentiometer Varistor",
     "S": "SW ",
-    "J": "Connector PinHeader Banana RJ45 RJ12 RJ14 USB TerminalBlock Molex JST Harwin Hirose IDC JAE FFC FPC HDMI DIN Dsub Coaxial BarrelJack Jack ",
+    "J": "Connector PinHeader Banana RJ45 RJ12 RJ14 USB TerminalBlock Molex JST \
+          Harwin Hirose IDC JAE FFC FPC HDMI DIN Dsub Coaxial BarrelJack Jack",
     "T": "Transformer Pulse Autotransformer ",
     "Y": "Crystal Oscillator",
 }
 
 
 def infer_family(x):
+    # look for the first element separated with an underscore
+    # as is common with KiCad footprints
     fp = x.split("_")
     if len(fp) > 1:
         fp0 = fp[0].split("-")
@@ -36,6 +40,7 @@ def infer_family(x):
             x = fp0[0]
         else:
             x = fp[0]
+    # else look for the first dash separated element common with Eagle libraries
     else:
         fp0 = x.split("-")
         if len(fp0) > 1:

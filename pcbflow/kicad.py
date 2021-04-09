@@ -31,6 +31,19 @@ class KiCadPart(Part):
         self.parse()
         super().__init__(dc, val, source, **kwargs)
 
+    def _add_obj_to_layer(self, obj, layer):
+        if layer == "GTO":
+            self.board.get_silk_layer(side=self.side).add(obj)
+        elif layer == "GTD":
+            self.board.get_docu_layer(side=self.side).add(obj)
+        elif layer == "GTP":
+            self.board.get_paste_layer(side=self.side).add(obj)
+        elif layer == "GTL":
+            if self.side == "bottom":
+                self.board.layers["GBL"].add(obj)
+            else:
+                self.board.layers["GTL"].add(obj)
+
     def place(self, dc):
         for poly in self.polys:
             width = self.board.drc.silk_width
@@ -41,17 +54,7 @@ class KiCadPart(Part):
             for c in poly["coords"]:
                 coords.append((xyc[0] + c[0], xyc[1] + c[1]))
             g = sg.Polygon(coords).buffer(width / 2)
-            if "GTO" == poly["layer"]:
-                self.board.get_silk_layer(side=self.side).add(g)
-            elif "GTD" == poly["layer"]:
-                self.board.get_docu_layer(side=self.side).add(g)
-            elif "GTP" == poly["layer"]:
-                self.board.get_paste_layer(side=self.side).add(g)
-            elif "GTL" == poly["layer"]:
-                if self.side == "bottom":
-                    self.board.layers["GBL"].add(g)
-                else:
-                    self.board.layers["GTL"].add(g)
+            self._add_obj_to_layer(g, poly["layer"])
 
         for circle in self.circles:
             width = self.board.drc.silk_width
@@ -61,17 +64,7 @@ class KiCadPart(Part):
             xyc = (xyc[0] + circle["center"][0], xyc[1] + circle["center"][1])
             gc = sg.Point(xyc).buffer(circle["diameter"] / 2)
             g = sg.Polygon(gc.exterior.coords).buffer(width)
-            if "GTO" == circle["layer"]:
-                self.board.get_silk_layer(side=self.side).add(g)
-            elif "GTD" == circle["layer"]:
-                self.board.get_docu_layer(side=self.side).add(g)
-            elif "GTP" == circle["layer"]:
-                self.board.get_paste_layer(side=self.side).add(g)
-            elif "GTL" == circle["layer"]:
-                if self.side == "bottom":
-                    self.board.layers["GBL"].add(g)
-                else:
-                    self.board.layers["GTL"].add(g)
+            self._add_obj_to_layer(g, circle["layer"])
 
         for line in self.lines:
             p0 = dc.copy().goxy(*line["coords"][0])
@@ -80,12 +73,7 @@ class KiCadPart(Part):
             if line["width"] > 0:
                 width = line["width"]
             g = sg.LineString([p0.xy, p1.xy]).buffer(width / 2)
-            if "GTO" in line["layers"]:
-                self.board.get_silk_layer(side=self.side).add(g)
-            elif "GTD" in line["layers"]:
-                self.board.get_docu_layer(side=self.side).add(g)
-            elif "GTP" in line["layers"]:
-                self.board.get_paste_layer(side=self.side).add(g)
+            self._add_obj_to_layer(g, line["layers"][0])
 
         for pad in self.smd_pads:
             p = dc.copy().goxy(*pad["xy"])
