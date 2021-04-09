@@ -9,6 +9,7 @@ if __name__ == "__main__":
     brd = Board((50, 30))
     brd.add_part((5, 8), KiCadPart, libraryfile="kc1.kicad_mod", side="top")
     KiCadPart(brd.DC((20, 20)), libraryfile="kc2.kicad_mod", side="top")
+    KiCadPart(brd.DC((8, 25)), libraryfile="kc5.kicad_mod", side="top")
     KiCadPart(brd.DC((35, 25)), libraryfile="kc6.kicad_mod", side="top")
     KiCadPart(brd.DC((25, 20)), libraryfile="kc3.kicad_mod", side="bottom")
     KiCadPart(brd.DC((35, 8)), libraryfile="kc4.kicad_mod", side="bottom")

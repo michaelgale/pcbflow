@@ -25,6 +25,7 @@ class KiCadPart(Part):
         self.pin_pads = []
         self.polys = []
         self.lines = []
+        self.circles = []
         self.labels = []
         self.docu = []
         self.parse()
@@ -47,6 +48,26 @@ class KiCadPart(Part):
             elif "GTP" == poly["layer"]:
                 self.board.get_paste_layer(side=self.side).add(g)
             elif "GTL" == poly["layer"]:
+                if self.side == "bottom":
+                    self.board.layers["GBL"].add(g)
+                else:
+                    self.board.layers["GTL"].add(g)
+
+        for circle in self.circles:
+            width = self.board.drc.silk_width
+            if circle["width"] > 0:
+                width = circle["width"]
+            xyc = self.center.xy
+            xyc = (xyc[0] + circle["center"][0], xyc[1] + circle["center"][1])
+            gc = sg.Point(xyc).buffer(circle["diameter"] / 2)
+            g = sg.Polygon(gc.exterior.coords).buffer(width)
+            if "GTO" == circle["layer"]:
+                self.board.get_silk_layer(side=self.side).add(g)
+            elif "GTD" == circle["layer"]:
+                self.board.get_docu_layer(side=self.side).add(g)
+            elif "GTP" == circle["layer"]:
+                self.board.get_paste_layer(side=self.side).add(g)
+            elif "GTL" == circle["layer"]:
                 if self.side == "bottom":
                     self.board.layers["GBL"].add(g)
                 else:
@@ -99,14 +120,8 @@ class KiCadPart(Part):
                 xyc = self.center.xy
                 xy = (xyc[0] + label["xy"][0], xyc[1] + label["xy"][1])
                 self.board.add_text(
-                    xy,
-                    self.id,
-                    angle=0,
-                    scale=1.0,
-                    side=self.side,
-                    justify="center",
+                    xy, self.id, angle=0, scale=1.0, side=self.side, justify="center",
                 )
-
 
     def _map_layers(self, layers):
         ml = []
@@ -144,6 +159,27 @@ class KiCadPart(Part):
                     layer = self._map_layers(e["layer"])[0]
         self.polys.append({"coords": coords, "width": width, "layer": layer})
 
+    def _parse_fp_circle(self, items):
+        center = (0, 0)
+        width = 0
+        diameter = 0
+        layers = []
+        for e in items:
+            if isinstance(e, dict):
+                if "center" in e:
+                    pt = e["center"]
+                    center = (float(pt[0]), float(pt[1]))
+                if "end" in e:
+                    pt = e["end"]
+                    end = (float(pt[0]), float(pt[1]))
+                    diameter = max(abs(center[0] - end[0]), abs(center[1] - end[1]))
+                elif "width" in e:
+                    width = float(e["width"][0])
+                elif "layer" in e:
+                    layer = self._map_layers(e["layer"])[0]
+        self.circles.append(
+            {"center": center, "diameter": diameter, "width": width, "layer": layer}
+        )
 
     def _parse_fp_line(self, items):
         coords = []
@@ -234,24 +270,8 @@ class KiCadPart(Part):
                 self._parse_fp_text(v["fp_text"])
             if "fp_poly" in v:
                 self._parse_fp_poly(v["fp_poly"])
+            if "fp_circle" in v:
+                self._parse_fp_circle(v["fp_circle"])
 
 
 # TODO   (fp_arc (start 0 0) (end 0 4) (angle -65) (layer F.Fab) (width 0.1))
-# TODO    (fp_circle (center 0 0) (end 1.12 0) (layer F.Fab) (width 0.1))
-# TODO   (fp_text reference REF** (at 0 -2.82) (layer F.SilkS)
-#     (effects (font (size 1 1) (thickness 0.15)))
-#   )
-#   (fp_poly (pts (xy 2.45 -2.51) (xy 4.45 -2.51) (xy 4.45 -5.15) (xy 7.15 -5.15)
-#     (xy 7.15 -2.51) (xy 9.15 -2.51) (xy 9.15 -5.15) (xy 11.85 -5.15)
-#     (xy 11.85 -0.71) (xy 11.35 -0.71) (xy 11.35 -4.65) (xy 9.65 -4.65)
-#     (xy 9.65 -2.01) (xy 6.65 -2.01) (xy 6.65 -4.65) (xy 4.95 -4.65)
-#     (xy 4.95 -2.01) (xy 1.95 -2.01) (xy 1.95 -4.65) (xy 0.25 -4.65)
-#     (xy 0.25 0.25) (xy -0.25 0.25) (xy -0.25 -4.65) (xy -1.65 -4.65)
-#     (xy -1.65 0.25) (xy -2.55 0.25) (xy -2.55 0.006785) (xy -2.247583 0.006785)
-#     (xy -2.237742 0.054395) (xy -2.213674 0.096797) (xy -2.175731 0.129581) (xy -2.167819 0.133935)
-#     (xy -2.125156 0.146043) (xy -2.076637 0.1453) (xy -2.031122 0.1324) (xy -2.012511 0.121787)
-#     (xy -1.978868 0.086553) (xy -1.958309 0.041368) (xy -1.951778 -0.008158) (xy -1.960218 -0.056417)
-#     (xy -1.977112 -0.088643) (xy -2.012372 -0.121313) (xy -2.057682 -0.141408) (xy -2.107267 -0.147982)
-#     (xy -2.155353 -0.140092) (xy -2.188245 -0.123186) (xy -2.223185 -0.086416) (xy -2.242847 -0.041622)
-#     (xy -2.247583 0.006785) (xy -2.55 0.006785) (xy -2.55 -5.15) (xy 2.45 -5.15)
-#     (xy 2.45 -2.51)) (layer F.Cu) (width 0))

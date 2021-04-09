@@ -14,103 +14,50 @@ from pcbflow import *
 SCALE_FACTOR = 4
 
 SVG_STYLE = {
-    "top": {
-        "layers": ["GTL", "GTS", "GTP", "GTO", "DRL", "GML"],
-        "fill_colours": [
-            "indianred",
-            "dimgray",
-            "mintcream",
-            "darkkhaki",
-            "black",
-            "white",
-        ],
-        "line_colours": [
-            "indianred",
-            "darkgrey",
-            "lightcyan",
-            "darkkhaki",
-            "black",
-            "slategray",
-        ],
-        "opacities": [1.0, 0.3, 0.3, 1.0, 1.0, 0.0],
-    },
-    "top_docu": {
-        "layers": ["GTL", "GTO", "GTD", "DRL", "GML"],
-        "fill_colours": ["indianred", "darkkhaki", "yellow", "black", "white",],
-        "line_colours": ["indianred", "darkkhaki", "yellow", "black", "white",],
-        "opacities": [1.0, 1.0, 1.0, 1.0, 1.0],
-    },
-    "bottom_docu": {
-        "layers": ["GBL", "GBO", "GBD", "DRL", "GML"],
-        "fill_colours": ["royalblue", "darkkhaki", "yellow", "black", "white",],
-        "line_colours": ["royalblue", "darkkhaki", "yellow", "black", "white",],
-        "opacities": [1.0, 1.0, 1.0, 1.0, 1.0],
-    },
-    "bottom": {
-        "layers": ["GBL", "GBS", "GBP", "GBO", "DRL", "GML"],
-        "fill_colours": [
-            "royalblue",
-            "dimgray",
-            "mintcream",
-            "darkkhaki",
-            "black",
-            "white",
-        ],
-        "line_colours": [
-            "royalblue",
-            "darkgrey",
-            "lightcyan",
-            "darkkhaki",
-            "black",
-            "slategray",
-        ],
-        "opacities": [1.0, 0.3, 0.3, 1.0, 1.0, 0.0],
-    },
-    "all": {
-        "layers": [
-            "GBO",
-            "GBS",
-            "GBP",
-            "GBL",
-            "GP2",
-            "GP3",
-            "GTL",
-            "GTS",
-            "GTP",
-            "GTO",
-            "DRL",
-            "GML",
-        ],
-        "fill_colours": [
-            "darkkhaki",
-            "dimgray",
-            "mintcream",
-            "royalblue",
-            "chocolate",
-            "green",
-            "indianred",
-            "dimgray",
-            "mintcream",
-            "darkkhaki",
-            "black",
-            "white",
-        ],
-        "line_colours": [
-            "darkkhaki",
-            "darkgrey",
-            "lightcyan",
-            "royalblue",
-            "chocolate",
-            "green",
-            "indianred",
-            "darkgrey",
-            "mintcream",
-            "darkkhaki",
-            "black",
-            "slategray",
-        ],
-        "opacities": [1.0, 0.5, 0.5, 0.4, 0.4, 0.4, 0.4, 0.3, 0.2, 1.0, 1.0, 0.0],
-    },
+    "top": [
+        ("GTL", "indianred", "indianred", 1.0),
+        ("GTS", "dimgray", "darkgray", 0.3),
+        ("GTP", "mintcream", "lightcyan", 0.3),
+        ("GTO", "darkkhaki", "darkkhaki", 1.0),
+        ("DRL", "black", "black", 1.0),
+        ("GML", "white", "slategray", 0.0),
+    ],
+    "top_docu": [
+        ("GTL", "indianred", "indianred", 1.0),
+        ("GTO", "darkkhaki", "darkkhaki", 1.0),
+        ("GTD", "yellow", "yellow", 1.0),
+        ("DRL", "black", "black", 1.0),
+        ("GML", "white", "slategray", 1.0),
+    ],
+    "bottom_docu": [
+        ("GBL", "royalblue", "royalblue", 1.0),
+        ("GBO", "darkkhaki", "darkkhaki", 1.0),
+        ("GBD", "yellow", "yellow", 1.0),
+        ("DRL", "black", "black", 1.0),
+        ("GML", "white", "slategray", 1.0),
+    ],
+    "bottom": [
+        ("GBL", "royalblue", "royalblue", 1.0),
+        ("GBS", "dimgray", "darkgray", 0.3),
+        ("GBP", "mintcream", "lightcyan", 0.3),
+        ("GBO", "darkkhaki", "darkkhaki", 1.0),
+        ("DRL", "black", "black", 1.0),
+        ("GML", "white", "slategray", 1.0),
+    ],
+    "all": [
+        ("GBO", "darkkhaki", "darkkhaki", 1.0),
+        ("GBS", "dimgray", "darkgray", 0.5),
+        ("GBP", "mintcream", "lightcyan", 0.5),
+        ("GBL", "royalblue", "royalblue", 0.4),
+        ("GP3", "chocolate", "chocolate", 0.4),
+        ("GP2", "green", "green", 0.4),
+        ("GTL", "indianred", "indianred", 0.4),
+        ("GTS", "dimgray", "darkgray", 0.3),
+        ("GTP", "mintcream", "lightcyan", 0.3),
+        ("GTO", "darkkhaki", "darkkhaki", 1.0),
+        ("DRL", "black", "black", 1.0),
+        ("GML", "white", "slategray", 0.0),
+    ],
 }
 
 
@@ -200,12 +147,7 @@ def svg_write(board, filename, style="top"):
     if style not in SVG_STYLE:
         raise KeyError("Cannot find a style called %s in SVG_STYLE" % (style))
     style = SVG_STYLE[style.lower()]
-    for layer, fc, lc, op in zip(
-        style["layers"],
-        style["fill_colours"],
-        style["line_colours"],
-        style["opacities"],
-    ):
+    for layer, fc, lc, op in style:
         if layer in board.layers:
             renderlayer(layer, fill_colour=fc, line_colour=lc, fill_opacity=op)
 

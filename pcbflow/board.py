@@ -32,6 +32,30 @@ class Board:
         self.nets = []
         self.config_default_layers()
 
+    def DC(self, xy, d=0):
+        return Draw(self, xy, d)
+
+    def assign(self, part):
+        pl = self.parts[part.family]
+        pl.append(part)
+        return part.family + str(len(pl))
+
+    def addnet(self, a, b):
+        self.nets.append(((a.part, a.name), (b.part, b.name)))
+
+    def get_part(self, ref):
+        for k, v in self.parts.items():
+            for p in v:
+                if p.id == ref:
+                    return p
+        return None
+
+    #########################################################################
+    #
+    # Layer Methods
+    #
+    #########################################################################
+
     def config_default_layers(self):
         self.layers = {}
         for k, v in DEFAULT_LAYERS.items():
@@ -103,40 +127,44 @@ class Board:
         layers = list(set(layers))
         return layers
 
-    def get_silk_layer(self, side="top", as_name=False):
+    def _get_layer(self, key, side, as_name):
         for k, v in self.layers.items():
-            if v.is_silk and side.title()[:3] in v.function:
+            if v.__dict__[key] and side.title()[:3] in v.function:
                 if as_name:
                     return k
                 return self.layers[k]
+        return None
+
+    def get_silk_layer(self, side="top", as_name=False):
+        return self._get_layer("is_silk", side, as_name)
 
     def get_docu_layer(self, side="top", as_name=False):
-        for k, v in self.layers.items():
-            if v.is_document and side.title()[:3] in v.function:
-                if as_name:
-                    return k
-                return self.layers[k]
+        return self._get_layer("is_document", side, as_name)
 
     def get_paste_layer(self, side="top", as_name=False):
-        for k, v in self.layers.items():
-            if v.is_paste and side.title()[:3] in v.function:
-                if as_name:
-                    return k
-                return self.layers[k]
+        return self._get_layer("is_paste", side, as_name)
 
     def get_mask_layer(self, side="top", as_name=False):
-        for k, v in self.layers.items():
-            if v.is_mask and side.title()[:3] in v.function:
-                if as_name:
-                    return k
-                return self.layers[k]
+        return self._get_layer("is_mask", side, as_name)
 
-    def get_part(self, ref):
-        for k, v in self.parts.items():
-            for p in v:
-                if p.id == ref:
-                    return p
-        return None
+    def fill_layer(self, layer, netname):
+        if layer not in self.layers:
+            print("Warning: Cannot fill layer %s; not in layer stack." % (layer))
+            return
+        la = self.layers[layer]
+        kol = so.unary_union(la.keepouts)
+        ko = kol.union(so.unary_union(self.keepouts))
+        g = self.body().buffer(-self.drc.clearance).difference(ko)
+        notouch = so.unary_union([o for (nm, o) in la.polys if nm != netname])
+        self.layers[layer].add(
+            g.difference(notouch.buffer(self.drc.clearance)), netname
+        )
+
+    #########################################################################
+    #
+    # String Methods
+    #
+    #########################################################################
 
     def parts_str(self):
         s = []
@@ -172,30 +200,15 @@ class Board:
                         s.append(col_str(sd))
         return "\n".join(s)
 
-    def boundary(self, r=0):
-        x0, y0 = (-r, -r)
-        x1, y1 = self.size
-        x1 += r
-        y1 += r
-        return sg.LinearRing([(x0, y0), (x1, y0), (x1, y1), (x0, y1)])
-
-    def boundary_keepout(self):
-        x0, y0 = (0, 0)
-        x1, y1 = self.size
-        bo = sg.LinearRing([(x0, y0), (x1, y0), (x1, y1), (x0, y1)]).buffer(
-            self.drc.outline_clearance
-        )
-        self.keepouts.append(bo)
+    #########################################################################
+    #
+    # Add PCB Object Methods
+    #
+    #########################################################################
 
     def add_outline(self):
         self.layers["GML"].add(self.boundary())
         self.boundary_keepout()
-
-    def oversize(self, r):
-        self.layers["GML"].add(self.boundary(r))
-        sr = self.drc.silk_width / 2
-        g = self.boundary(1.1 * sr).buffer(sr)
-        self.layers["GTO"].add(g.buffer(0))
 
     def add_named_rect(self, top_left, bottom_right, layer, name):
         coords = [
@@ -327,53 +340,11 @@ class Board:
         if soldermask_box:
             self.add_mask_to_obj(g, side)
 
-    def DC(self, xy, d=0):
-        return Draw(self, xy, d)
-
-    def fill_layer(self, layer, netname):
-        if layer not in self.layers:
-            print("Warning: Cannot fill layer %s; not in layer stack." % (layer))
-            return
-        la = self.layers[layer]
-        kol = so.unary_union(la.keepouts)
-        ko = kol.union(so.unary_union(self.keepouts))
-        g = self.body().buffer(-self.drc.clearance).difference(ko)
-        notouch = so.unary_union([o for (nm, o) in la.polys if nm != netname])
-        self.layers[layer].add(
-            g.difference(notouch.buffer(self.drc.clearance)), netname
-        )
-
-    def addnet(self, a, b):
-        self.nets.append(((a.part, a.name), (b.part, b.name)))
-
-    def body(self):
-        # Return the board outline with holes and slots removed.
-        # This is the shape of the resin subtrate.
-        gml = self.layers["GML"].lines
-        mask = sg.Polygon(gml[-1], gml[:-1])
-        for d, xys in self.holes.items():
-            if d > 0.3:
-                hlist = so.unary_union([sg.Point(xy).buffer(d / 2) for xy in xys])
-                mask = mask.difference(hlist)
-        return mask
-
-    def substrate(self):
-        substrate = Layer(None, None)
-        gml = self.layers["GML"].lines
-        mask = sg.Polygon(gml[-1], gml[:-1])
-        for d, xys in self.holes.items():
-            if d > 0.3:
-                hlist = so.unary_union([sg.Point(xy).buffer(d / 2) for xy in xys])
-                mask = mask.difference(hlist)
-        substrate.add(mask)
-        return substrate
-
-    def perform_drc(self):
-        mask = self.substrate().preview()
-        for l in ("GTL", "GBL"):
-            lg = self.layers[l].preview()
-            if not mask.contains(lg):
-                print("Layer", l, "boundary error")
+    #########################################################################
+    #
+    # Save Output Assets Methods
+    #
+    #########################################################################
 
     def save(
         self,
@@ -410,6 +381,7 @@ class Board:
 
         if svg:
             from pcbflow.svgout import svg_write
+
             print("Rendering preview_top.svg...")
             svg_write(self, assetpath + "_preview_top.svg", style="top")
             print("Rendering preview_top_docu.svg...")
@@ -517,6 +489,62 @@ class Board:
         with open(fn, "wt") as f:
             f.write("".join([l + "\n" for l in ps]))
 
+    #########################################################################
+    #
+    # Misc Methods
+    #
+    #########################################################################
+
+    def boundary(self, r=0):
+        x0, y0 = (-r, -r)
+        x1, y1 = self.size
+        x1 += r
+        y1 += r
+        return sg.LinearRing([(x0, y0), (x1, y0), (x1, y1), (x0, y1)])
+
+    def boundary_keepout(self):
+        x0, y0 = (0, 0)
+        x1, y1 = self.size
+        bo = sg.LinearRing([(x0, y0), (x1, y0), (x1, y1), (x0, y1)]).buffer(
+            self.drc.outline_clearance
+        )
+        self.keepouts.append(bo)
+
+    def oversize(self, r):
+        self.layers["GML"].add(self.boundary(r))
+        sr = self.drc.silk_width / 2
+        g = self.boundary(1.1 * sr).buffer(sr)
+        self.layers["GTO"].add(g.buffer(0))
+
+    def body(self):
+        # Return the board outline with holes and slots removed.
+        # This is the shape of the resin subtrate.
+        gml = self.layers["GML"].lines
+        mask = sg.Polygon(gml[-1], gml[:-1])
+        for d, xys in self.holes.items():
+            if d > 0.3:
+                hlist = so.unary_union([sg.Point(xy).buffer(d / 2) for xy in xys])
+                mask = mask.difference(hlist)
+        return mask
+
+    def substrate(self):
+        substrate = Layer(None, None)
+        gml = self.layers["GML"].lines
+        mask = sg.Polygon(gml[-1], gml[:-1])
+        for d, xys in self.holes.items():
+            if d > 0.3:
+                hlist = so.unary_union([sg.Point(xy).buffer(d / 2) for xy in xys])
+                mask = mask.difference(hlist)
+        substrate.add(mask)
+        return substrate
+
+    def perform_drc(self):
+        mask = self.substrate().preview()
+        for l in ("GTL", "GBL"):
+            lg = self.layers[l].preview()
+            if not mask.contains(lg):
+                print("Layer", l, "boundary error")
+
     def river1(self, i):
         return Route(self, [i])
 
@@ -561,11 +589,6 @@ class Board:
         z[1].w("o f .2 r 45 f {0} l 45 f .1".format(h))
         assert (abs(c - z[0].distance(z[1]))) < 1e-3
         return Route(self, z)
-
-    def assign(self, part):
-        pl = self.parts[part.family]
-        pl.append(part)
-        return part.family + str(len(pl))
 
     def check(self):
         def npoly(g):
