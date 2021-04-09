@@ -118,9 +118,6 @@ class KiCadPart(Part):
                 ml.append(KI_LAYER_DICT[layer])
         return ml
 
-    def _parse_fp_circle(self, items):
-        pass
-
     def _parse_fp_text(self, items):
         xy = []
         layers = []
