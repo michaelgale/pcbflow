@@ -463,7 +463,7 @@ class Board:
 
     def save_bom(self, fn):
         parts = defaultdict(list)
-        rank = "UJKTRCMY"
+        rank = "UJKTRCMYB"
         for f, pp in self.parts.items():
             for p in pp:
                 if p.inBOM:

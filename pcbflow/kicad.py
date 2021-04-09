@@ -31,11 +31,30 @@ class KiCadPart(Part):
         super().__init__(dc, val, source, **kwargs)
 
     def place(self, dc):
-        ls = []
+        for poly in self.polys:
+            width = self.board.drc.silk_width
+            if poly["width"] > 0:
+                width = poly["width"]
+            coords = []
+            xyc = self.center.xy
+            for c in poly["coords"]:
+                coords.append((xyc[0] + c[0], xyc[1] + c[1]))
+            g = sg.Polygon(coords).buffer(width / 2)
+            if "GTO" == poly["layer"]:
+                self.board.get_silk_layer(side=self.side).add(g)
+            elif "GTD" == poly["layer"]:
+                self.board.get_docu_layer(side=self.side).add(g)
+            elif "GTP" == poly["layer"]:
+                self.board.get_paste_layer(side=self.side).add(g)
+            elif "GTL" == poly["layer"]:
+                if self.side == "bottom":
+                    self.board.layers["GBL"].add(g)
+                else:
+                    self.board.layers["GTL"].add(g)
+
         for line in self.lines:
             p0 = dc.copy().goxy(*line["coords"][0])
             p1 = dc.copy().goxy(*line["coords"][1])
-            ls.append(sg.LineString([p0.xy, p1.xy]))
             width = self.board.drc.silk_width
             if line["width"] > 0:
                 width = line["width"]
@@ -75,6 +94,20 @@ class KiCadPart(Part):
                 p.pin_pad()
                 dc.pop()
 
+        if len(self.labels) > 0:
+            for label in self.labels:
+                xyc = self.center.xy
+                xy = (xyc[0] + label["xy"][0], xyc[1] + label["xy"][1])
+                self.board.add_text(
+                    xy,
+                    self.id,
+                    angle=0,
+                    scale=1.0,
+                    side=self.side,
+                    justify="center",
+                )
+
+
     def _map_layers(self, layers):
         ml = []
         for layer in layers:
@@ -84,6 +117,33 @@ class KiCadPart(Part):
 
     def _parse_fp_circle(self, items):
         pass
+
+    def _parse_fp_text(self, items):
+        xy = []
+        layers = []
+        text = items[0]
+        for e in items:
+            if isinstance(e, dict):
+                if "at" in e:
+                    xy = float(e["at"][0]), float(e["at"][1])
+                elif "layer" in e:
+                    layer = self._map_layers(e["layer"])[0]
+        if text == "reference":
+            self.labels.append({"xy": xy, "text": text, "layer": layer})
+
+    def _parse_fp_poly(self, items):
+        coords = []
+        for e in items:
+            if isinstance(e, dict):
+                if "pts" in e:
+                    for pt in e["pts"]:
+                        coords.append((float(pt[2]), float(pt[3])))
+                elif "width" in e:
+                    width = float(e["width"][0])
+                elif "layer" in e:
+                    layer = self._map_layers(e["layer"])[0]
+        self.polys.append({"coords": coords, "width": width, "layer": layer})
+
 
     def _parse_fp_line(self, items):
         coords = []
@@ -170,6 +230,10 @@ class KiCadPart(Part):
                 self._parse_fp_line(v["fp_line"])
             if "pad" in v:
                 self._parse_pad(v["pad"])
+            if "fp_text" in v:
+                self._parse_fp_text(v["fp_text"])
+            if "fp_poly" in v:
+                self._parse_fp_poly(v["fp_poly"])
 
 
 # TODO   (fp_arc (start 0 0) (end 0 4) (angle -65) (layer F.Fab) (width 0.1))
