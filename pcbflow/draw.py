@@ -233,6 +233,8 @@ class Draw(Turtle):
             self.right(ea)
             self.forward(half_edge)
         self.pop()
+        self.pw = 2 * radius
+        self.h = 2 * radius
 
     def thermal(self, length, spokes=4):
         for i in range(spokes):
@@ -292,7 +294,7 @@ class Draw(Turtle):
         return self
 
     def square(self, width):
-        self.rect(width, width)
+        return self.rect(width, width)
 
     def poly(self):
         return sg.Polygon(self.path)

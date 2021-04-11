@@ -13,10 +13,8 @@ if __name__ == "__main__":
     usb_con = EaglePart(
         brd.DC((10, 10)), libraryfile="sparkfun.lbr", partname="USB-B-SMT", side="top"
     )
-    # usb_con.s("D-").w("r 90 f 5 l 90 f 10").wire(width=0.25)
-    usb_con.pads[3].w("r 90 f 5 l 90 f 10").wire(width=0.25)
-    print(usb_con)
-    uc.pads[8].turtle("o f 3").wire()
+    usb_con.pad("D-").turtle("r 90 f 5 l 90 f 10").wire(width=0.25)
+
     brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GBL", "VCC")

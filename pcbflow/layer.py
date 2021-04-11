@@ -2,6 +2,7 @@
 #
 # Layer classes
 
+from collections import defaultdict
 
 import shapely.geometry as sg
 import shapely.affinity as sa
@@ -33,7 +34,7 @@ DEFAULT_LAYER_ORDER = [
 DEFAULT_LAYERS = {
     "GTD": {
         "desc": "Top Documentation",
-        "function": "Document,Top",
+        "function": "AssemblyDrawing,Top",
         "is_document": True,
         "z_order": 0,
     },
@@ -87,7 +88,7 @@ DEFAULT_LAYERS = {
     },
     "GBD": {
         "desc": "Bottom Documentation",
-        "function": "Document,Bottom",
+        "function": "AssemblyDrawing,Bot",
         "is_document": True,
         "z_order": 9,
     },
@@ -97,6 +98,8 @@ DEFAULT_LAYERS = {
 class Layer:
     def __init__(self, **kwargs):
         self.polys = []
+        self.named_polys = []
+        self.fill_poly = None
         self.desc = ""
         self.function = ""
         self.enabled = True
@@ -111,6 +114,8 @@ class Layer:
         self.connected = []
         self.keepouts = []
         self.preview_poly = None
+        if "drc" not in kwargs:
+            self.drc = DRC()
         for k, v in kwargs.items():
             self.__dict__[k] = v
 
@@ -134,9 +139,32 @@ class Layer:
         self.polys.append((name, obj.simplify(0.001, preserve_topology=False)))
         self.preview_poly = None
 
+    def add_named(self, obj, name):
+        self.named_polys.append((name, obj.simplify(0.001, preserve_topology=False)))
+        self.preview_poly = None
+
     def preview(self):
         if self.preview_poly is None:
-            self.preview_poly = so.unary_union([p for (_, p) in self.polys])
+            named_polys = [p for (_, p) in self.named_polys]
+            all_polys = [p for (_, p) in self.polys]
+            name_dict = defaultdict(int)
+            for netname, _ in self.named_polys:
+                if netname is not None:
+                    name_dict[netname] += 1
+            exclusions = []
+            for netname in name_dict:
+                exc = so.unary_union([o for (name, o) in self.polys if name != netname])
+                exclusions.append(exc.simplify(0.001, preserve_topology=False))
+            if len(exclusions) > 0:
+                diff_exc = so.unary_union([p for p in exclusions]).buffer(
+                    self.drc.clearance
+                )
+                ncp = so.unary_union(named_polys).difference(diff_exc)
+                self.preview_poly = so.unary_union([*all_polys, ncp])
+            else:
+                self.preview_poly = so.unary_union([*all_polys, *named_polys])
+        if self.fill_poly is not None:
+            self.preview_poly = so.unary_union([self.preview_poly, self.fill_poly])
         return self.preview_poly
 
     def paint(self, bg, include, clearance):

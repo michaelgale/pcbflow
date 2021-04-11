@@ -273,8 +273,6 @@ class KiCadPart(PCBPart):
 
 # TODO   (fp_arc (start 0 0) (end 0 4) (angle -65) (layer F.Fab) (width 0.1))
 
-import skidl
-
 
 class SkiPart(KiCadPart):
     def __init__(self, dc, skipart, **kwargs):
@@ -300,7 +298,7 @@ class SkiPart(KiCadPart):
 
         global ALL_KICAD_MOD_FILES, FP_LIB_PATH
         if ALL_KICAD_MOD_FILES is None:
-            for path in skidl.footprint_search_paths["kicad"]:
+            for path in footprint_search_paths["kicad"]:
                 kicadfn = path + os.sep + "kicad_common"
                 if os.path.isfile(full_path(kicadfn)):
                     with open(kicadfn, "r") as f:

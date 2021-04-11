@@ -59,7 +59,7 @@ class Board:
     def config_default_layers(self):
         self.layers = {}
         for k, v in DEFAULT_LAYERS.items():
-            self.layers[k] = Layer(**v)
+            self.layers[k] = Layer(drc=self.drc, **v)
         self.layers["GML"] = OutlineLayer(desc="Mechanical", function="Profile,NP")
         self.reorder_layer_stack()
 
@@ -151,14 +151,13 @@ class Board:
         if layer not in self.layers:
             print("Warning: Cannot fill layer %s; not in layer stack." % (layer))
             return
-        la = self.layers[layer]
-        kol = so.unary_union(la.keepouts)
-        ko = kol.union(so.unary_union(self.keepouts))
+        lyr = self.layers[layer]
+        ko = so.unary_union([*lyr.keepouts, *self.keepouts])
         g = self.body().buffer(-self.drc.clearance).difference(ko)
-        notouch = so.unary_union([o for (nm, o) in la.polys if nm != netname])
-        self.layers[layer].add(
-            g.difference(notouch.buffer(self.drc.clearance)), netname
-        )
+        ap = [p for (name, p) in lyr.polys if name != netname]
+        np = [p for (name, p) in lyr.named_polys if name != netname]
+        exclusions = so.unary_union([*ap, *np])
+        lyr.fill_poly = g.difference(exclusions.buffer(self.drc.clearance))
 
     def add_to_mask_layers(self, obj):
         self.layers["GTS"].add(obj)
@@ -225,7 +224,7 @@ class Board:
 
     def add_named_poly(self, coords, layer, name):
         poly = sg.Polygon(coords)
-        self.layers[layer].add(poly, name)
+        self.layers[layer].add_named(poly, name)
 
     def add_part(self, xy, part, side="top", rot=None, val=None, **kwargs):
         if isinstance(xy, Draw):
@@ -374,7 +373,13 @@ class Board:
         if gerber:
             for (name, layer) in self.layers.items():
                 print("Rendering Gerber %s..." % (name))
-                with open(assetpath + "." + name, "wt") as f:
+                if name == "GTD":
+                    fn = assetpath + "_top.GBR"
+                elif name == "GBD":
+                    fn = assetpath + "_bot.GBR"
+                else:
+                    fn = assetpath + "." + name
+                with open(fn, "wt") as f:
                     layer.save(f)
             ls = "1,%d" % (len(self.get_copper_layers()))
             print("Rendering excellon drill files...")

@@ -33,6 +33,9 @@ if __name__ == "__main__":
     vdd = Net("VDD")
     gnd = Net("GND")
 
+    # Place a VDD patch under MCU
+    brd.add_named_rect((27, 25), (45, 5), layer="GP3", name="VDD")
+
     # Assign VDD and GND to our parts
     mcu["VDD"] += vdd
     mcu["VSS"] += gnd
@@ -63,6 +66,6 @@ if __name__ == "__main__":
     brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GBL", "GND")
-    brd.fill_layer("GP3", "VDD")
+    brd.fill_layer("GP3", "GND")
 
     brd.save("%s" % (__file__[:-3]))
