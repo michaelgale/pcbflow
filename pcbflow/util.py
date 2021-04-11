@@ -76,14 +76,15 @@ def col_str(items):
     max_width = 0
     for e in items:
         max_width = max(max_width, len(e))
-    col_width = int(sz.columns / (max_width + 1))
+    max_width += 1
+    col_width = int(sz.columns / max_width)
     s = []
     for i, e in enumerate(items, 1):
         s.append(e.ljust(max_width))
         if i % col_width == 0:
             cs.append("%s\n" % ("".join(s)))
             s = []
-    cs.append("%s\n" % ("".join(s)))
+    cs.append("".join(s))
     return "".join(cs)
 
 
@@ -114,3 +115,10 @@ def max_bounds(bounds, min_bound=5):
         mbounds[3] + min_bound,
     ]
     return mbounds
+
+
+def full_path(file):
+    """ Returns the fully expanded path of a file"""
+    if "~" in str(file):
+        return os.path.expanduser(file)
+    return os.path.expanduser(os.path.abspath(file))

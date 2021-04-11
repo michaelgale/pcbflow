@@ -11,8 +11,6 @@ VERSION = __project__ + "-" + __version__
 
 script_dir = os.path.dirname(__file__)
 
-FP_LIB_PATH = "/Library/Application Support/kicad/modules/"
-
 
 def INCHES(x):
     return x * 25.4
@@ -38,6 +36,7 @@ from .util import (
     pad_bound,
     max_bounds,
     infer_family,
+    full_path,
 )
 from .gerber import Gerber
 from .excellon import excellon

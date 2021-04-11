@@ -1,0 +1,9 @@
+cd ../pcbflow
+black *.py
+cd footprints
+black *.py
+cd ../..
+cd tests
+black *.py
+cd ../scripts
+black *.py

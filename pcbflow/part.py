@@ -42,7 +42,11 @@ class PCBPart:
         if "footprint" not in self.__dict__:
             self.footprint = ""
         self.inBOM = True
-        self.id = dc.board.assign(self)
+        if "ref" in kwargs:
+            self.id = kwargs["ref"]
+            dc.board.parts[self.family].append(self)
+        else:
+            self.id = dc.board.assign(self)
         self.side = side.lower()
         self.pads = []
         if val is not None:

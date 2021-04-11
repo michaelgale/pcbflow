@@ -24,7 +24,6 @@ if __name__ == "__main__":
         footprint="C_0603_1608Metric_Pad1.08x0.95mm_HandSolder",
         dest=TEMPLATE,
     )
-
     # Declare 3 instances of our generic capacitor with values
     c1 = cap(value="10uF")
     c2 = cap(value="0.1uF")
@@ -40,17 +39,21 @@ if __name__ == "__main__":
     for c in [c1, c2, c3]:
         c[1] += vdd
         c[2] += gnd
-    print(mcu["VDD"])
+
     # Assign a convenient reference to the default SKiDL circuit
     ckt = default_circuit
+    print("Circuit:  Parts: %d  Nets: %d" % (len(ckt.parts), len(ckt.nets)))
 
-    print("Circuit\n  Parts: %d  Nets: %d" % (len(ckt.parts), len(ckt.nets)))
-
-    # Assign part locations and instantiate pcbflow SkiPart(PCBPart) instances
-    npos = [(35, 15), (25, 15), (45, 15), (37, 6.5)]
+    # Assign part locations
+    mcu.loc = (35, 15)
+    c1.loc = (25,15)
+    c2.loc = (45,15)
+    c3.loc = (37,6.5)
     sides = ["top", "bottom", "top", "bottom"]
-    for part, pos, side in zip(ckt.parts, npos, sides):
-        sp = SkiPart(brd.DC(pos), part, side=side)
+
+    # Instantiate SkiPart(PCBPart) instances
+    for part, side in zip(ckt.parts, sides):
+        sp = SkiPart(brd.DC(part.loc), part, side=side)
         # "fanout" GND and VDD vias from parts with GND and VDD net connections
         sp.fanout(["VDD"])
         sp.fanout(["GND"], relative_to="inside")

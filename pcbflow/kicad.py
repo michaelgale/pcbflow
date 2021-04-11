@@ -20,6 +20,7 @@ KI_LAYER_DICT = {
     "F.Fab": "GTD",
 }
 
+FP_LIB_PATH = None
 ALL_KICAD_MOD_FILES = None
 
 
@@ -272,6 +273,8 @@ class KiCadPart(PCBPart):
 
 # TODO   (fp_arc (start 0 0) (end 0 4) (angle -65) (layer F.Fab) (width 0.1))
 
+import skidl
+
 
 class SkiPart(KiCadPart):
     def __init__(self, dc, skipart, **kwargs):
@@ -279,7 +282,12 @@ class SkiPart(KiCadPart):
         self.footprint = skipart.footprint
         lfn = self._find_footprint_file(skipart.footprint)
         super().__init__(
-            dc, val=skipart.value, libraryfile=lfn, family=skipart.ref_prefix, **kwargs
+            dc,
+            val=skipart.value,
+            libraryfile=lfn,
+            family=skipart.ref_prefix,
+            ref=skipart.ref,
+            **kwargs
         )
         for pad in self.pads:
             for pin in self.skipart.pins:
@@ -288,8 +296,21 @@ class SkiPart(KiCadPart):
                         pad.name = pin.nets[0].name
 
     def _find_footprint_file(self, libraryfile):
-        global ALL_KICAD_MOD_FILES
+        from skidl import footprint_search_paths
+
+        global ALL_KICAD_MOD_FILES, FP_LIB_PATH
         if ALL_KICAD_MOD_FILES is None:
+            for path in skidl.footprint_search_paths["kicad"]:
+                kicadfn = path + os.sep + "kicad_common"
+                if os.path.isfile(full_path(kicadfn)):
+                    with open(kicadfn, "r") as f:
+                        kf = f.readlines()
+                    for line in kf:
+                        ls = line.split("=")
+                        if ls[0] == "KISYSMOD":
+                            FP_LIB_PATH = ls[1].rstrip()
+            if FP_LIB_PATH is None:
+                raise FileNotFoundError("Unable to find KiCAD footprints directory")
             ALL_KICAD_MOD_FILES = glob.glob(
                 FP_LIB_PATH + os.sep + "**/*.kicad_mod", recursive=True
             )
