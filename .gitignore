@@ -10,6 +10,7 @@
 *.GP?
 *.pov
 *.svg
+*.pdf
 *.ps
 *.csv
 

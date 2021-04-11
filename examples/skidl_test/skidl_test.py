@@ -14,7 +14,7 @@ if __name__ == "__main__":
     for hole in holes:
         brd.add_hole(hole, 2.0)
     brd.add_text((10, 25), "Made with pcbflow", justify="left")
-    brd.add_text((10, 25), "Made with pcbflow", layer="GBL", keepout_box=True, justify="left")
+    brd.add_text((10, 25), "Made with pcbflow", side="bottom", layer="GBL", keepout_box=True, justify="left")
     # Declare microcontroller
     mcu = Part(
         "DSP_Microchip_DSPIC33",
