@@ -78,7 +78,7 @@ class PCBPart:
         if len(self.pads) > 0:
             sp = []
             for i, p in enumerate(self.pads):
-                name = "-" if p.name is None else p.name
+                name = "?" if p.name is None else p.name
                 sp.append(
                     "%3d: %s (%.2f, %.2f)"
                     % (i, name, better_float(p.xy[0]), better_float(p.xy[1]))
@@ -108,7 +108,15 @@ class PCBPart:
     def fanout(self, nets=None, length=None, relative_to="outside"):
         layer = "GTL" if self.side == "top" else "GBL"
         if nets is None:
+            print(
+                "WARNING: fanout for %s requires at least one net name to match against pad names"
+                % (self.id)
+            )
             return
+        if isinstance(nets, str):
+            nets = nets.split()
+        elif not isinstance(nets, (list, tuple)):
+            nets = [nets]
         for pad in self.pads:
             if pad.name is not None:
                 if not pad.name == "" and pad.name in nets:

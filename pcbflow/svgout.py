@@ -8,6 +8,7 @@ import shapely.geometry as sg
 import shapely.affinity as sa
 import shapely.ops as so
 import svgwrite
+from cairosvg import svg2png
 
 from pcbflow import *
 
@@ -61,7 +62,7 @@ SVG_STYLE = {
 }
 
 
-def svg_write(board, filename, style="top"):
+def svg_write(board, filename, style="top", save_png=False):
     gml = board.layers["GML"].lines
     block = sg.Polygon(gml[-1], gml[:-1])
     block = block.buffer(1).buffer(-1)
@@ -152,3 +153,6 @@ def svg_write(board, filename, style="top"):
             renderlayer(layer, fill_colour=fc, line_colour=lc, fill_opacity=op)
 
     dwg.save()
+    if save_png:
+        fn = filename.replace(".svg", ".png")
+        svg2png(bytestring=dwg.tostring(), write_to=fn)

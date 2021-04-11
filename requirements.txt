@@ -2,3 +2,4 @@ shapely
 pytest
 pillow
 svgwrite
+cairosvg

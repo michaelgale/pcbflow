@@ -349,16 +349,7 @@ class Board:
     #
     #########################################################################
 
-    def save(
-        self,
-        basename,
-        in_subdir=True,
-        gerber=True,
-        svg=True,
-        bom=True,
-        centroids=True,
-        povray=False,
-    ):
+    def _get_asset_path(self, basename, in_subdir=True):
         if in_subdir:
             newpath = os.path.normpath("./%s" % (basename))
             if not os.path.isdir(newpath):
@@ -369,38 +360,25 @@ class Board:
             assetpath = os.path.normpath("./%s" % (basename) + os.sep + basename)
         else:
             assetpath = basename
+        return assetpath
+
+    def save(
+        self,
+        basename,
+        in_subdir=True,
+        gerber=True,
+        svg=True,
+        bom=True,
+        centroids=True,
+        povray=False,
+    ):
+        assetpath = self._get_asset_path(basename, in_subdir)
 
         if gerber:
-            for (name, layer) in self.layers.items():
-                print("Rendering Gerber %s..." % (name))
-                if name == "GTD":
-                    fn = assetpath + "_top.GBR"
-                elif name == "GBD":
-                    fn = assetpath + "_bot.GBR"
-                else:
-                    fn = assetpath + "." + name
-                with open(fn, "wt") as f:
-                    layer.save(f)
-            ls = "1,%d" % (len(self.get_copper_layers()))
-            print("Rendering excellon drill files...")
-            with open(assetpath + "_PTH.DRL", "wt") as f:
-                excellon(f, self.holes, "Plated,%s,PTH" % (ls))
-            with open(assetpath + "_NPTH.DRL", "wt") as f:
-                excellon(f, self.npth, "NonPlated,%s,NPTH" % (ls))
+            self.save_gerbers(basename, in_subdir)
 
         if svg:
-            from pcbflow.svgout import svg_write
-
-            print("Rendering preview_top.svg...")
-            svg_write(self, assetpath + "_preview_top.svg", style="top")
-            print("Rendering preview_top_docu.svg...")
-            svg_write(self, assetpath + "_preview_top_docu.svg", style="top_docu")
-            print("Rendering preview_bot.svg...")
-            svg_write(self, assetpath + "_preview_bot.svg", style="bottom")
-            print("Rendering preview_bot_docu.svg...")
-            svg_write(self, assetpath + "_preview_bot_docu.svg", style="bottom_docu")
-            print("Rendering preview_all.svg...")
-            svg_write(self, assetpath + "_preview_all.svg", style="all")
+            self.save_svg(basename, in_subdir)
 
         if povray:
             substrate = self.substrate()
@@ -418,6 +396,54 @@ class Board:
         if centroids:
             self.save_centroids(assetpath)
 
+    def save_gerbers(self, basename, in_subdir=True):
+        assetpath = self._get_asset_path(basename, in_subdir)
+
+        for (name, layer) in self.layers.items():
+            print("Rendering Gerber %s..." % (name))
+            if name == "GTD":
+                fn = assetpath + "_top.GBR"
+            elif name == "GBD":
+                fn = assetpath + "_bot.GBR"
+            else:
+                fn = assetpath + "." + name
+            with open(fn, "wt") as f:
+                layer.save(f)
+        ls = "1,%d" % (len(self.get_copper_layers()))
+        print("Rendering excellon drill files...")
+        with open(assetpath + "_PTH.DRL", "wt") as f:
+            excellon(f, self.holes, "Plated,%s,PTH" % (ls))
+        with open(assetpath + "_NPTH.DRL", "wt") as f:
+            excellon(f, self.npth, "NonPlated,%s,NPTH" % (ls))
+
+    def save_svg(self, basename, in_subdir=True, save_png=False):
+        assetpath = self._get_asset_path(basename, in_subdir)
+
+        from pcbflow.svgout import svg_write
+
+        print("Rendering preview_top.svg...")
+        svg_write(self, assetpath + "_preview_top.svg", style="top", save_png=save_png)
+        print("Rendering preview_top_docu.svg...")
+        svg_write(
+            self,
+            assetpath + "_preview_top_docu.svg",
+            style="top_docu",
+            save_png=save_png,
+        )
+        print("Rendering preview_bot.svg...")
+        svg_write(
+            self, assetpath + "_preview_bot.svg", style="bottom", save_png=save_png
+        )
+        print("Rendering preview_bot_docu.svg...")
+        svg_write(
+            self,
+            assetpath + "_preview_bot_docu.svg",
+            style="bottom_docu",
+            save_png=save_png,
+        )
+        print("Rendering preview_all.svg...")
+        svg_write(self, assetpath + "_preview_all.svg", style="all", save_png=save_png)
+
     def save_centroids(self, fn):
         with open(fn + "-centroids.csv", "wt") as f:
             cs = csv.writer(f)
@@ -426,7 +452,7 @@ class Board:
             )
 
             def flt(x):
-                return "{:.3f}".format(x)
+                return "{:.3f}".format(better_float(x))
 
             for f, pp in self.parts.items():
                 for p in pp:

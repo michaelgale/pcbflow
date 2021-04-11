@@ -7,12 +7,13 @@ from pcbflow import *
 
 
 class Discrete2(PCBPart):
-    def fanout(self, pad1=None, pad2=None):
+    def assign_pads(self, pad1=None, pad2=None):
         layer = "GTL" if self.side == "top" else "GBL"
         if pad1 is not None:
-            self.pads[0].set_name(pad1).w("o").wvia(layer=layer, net=pad1)
+            self.pads[0].set_name(pad1)
         if pad2 is not None:
-            self.pads[1].set_name(pad2).w("o").wvia(layer=layer, net=pad2)
+            self.pads[1].set_name(pad2)
+        return self
 
 
 class C0402(Discrete2):
