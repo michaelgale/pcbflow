@@ -254,13 +254,22 @@ Outfiles can be created in the same folder as the script file or in a subfolder 
 
 ```python
 brd.save(basename, in_subdir=True, 
-  gerber=True, svg=True, bom=True, centroids=True, povray=False)
+  gerber=True, pdf=True, bom=True, centroids=True, povray=False)
 ```
 
 The `in_subdir` argument specifies whether a subfolder named `basename` should be created for the assets.
-The `gerber`, `svg`, `bom`, `centroids`, `povray` arguments specify which of the asset types to generate.
+The `gerber`, `pdf`, `bom`, `centroids`, `povray` arguments specify which of the asset types to generate.
 
+Alternatively, individual asset types can be generated using these convenience methods:
 
+```python
+brd.save_gerbers(basename, in_subdir=True)
+brd.save_pdf(basename, in_subdir=True)
+brd.save_png(basename, in_subdir=True)
+brd.save_svg(basename, in_subdir=True)
+brd.save_centroids(basename, in_subdir=True)
+brd.save_bom(basename, in_subdir=True)
+```
 
 ## Putting it Together with SKiDL
 
@@ -322,6 +331,13 @@ if __name__ == "__main__":
     vdd = Net("VDD")
     gnd = Net("GND")
 
+    # Assign VDD and GND to our parts
+    mcu["VDD"] += vdd
+    mcu["VSS"] += gnd
+    for c in [c1, c2, c3]:
+        c[1] += vdd
+        c[2] += gnd
+
     ###
     ### pcbflow PCB Declarations
     ###
@@ -342,15 +358,9 @@ if __name__ == "__main__":
     # Place a VDD patch under MCU on layer GP3
     brd.add_named_rect((27, 25), (45, 5), layer="GP3", name="VDD")
 
-    # Assign VDD and GND to our parts
-    mcu["VDD"] += vdd
-    mcu["VSS"] += gnd
-    for c in [c1, c2, c3]:
-        c[1] += vdd
-        c[2] += gnd
-
     # Assign a convenient reference to the default SKiDL circuit
     ckt = default_circuit
+
     print("Circuit:  Parts: %d  Nets: %d" % (len(ckt.parts), len(ckt.nets)))
 
     # Assign part locations (we're adding an extra atrribute to the skidl.Part object)

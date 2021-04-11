@@ -392,9 +392,9 @@ class Board:
             with open(assetpath + ".gts.pov", "wt") as f:
                 self.layers["GTS"].povray(f, mask=mask, invert=True)
         if bom:
-            self.save_bom(assetpath)
+            self.save_bom(basename, in_subdir)
         if centroids:
-            self.save_centroids(assetpath)
+            self.save_centroids(basename, in_subdir)
 
     def save_gerbers(self, basename, in_subdir=True):
         assetpath = self._get_asset_path(basename, in_subdir)
@@ -448,7 +448,8 @@ class Board:
         print("Rendering preview_all.%s..." % (formats))
         svg_write(self, assetpath + "_preview_all.svg", style="all", formats=formats)
 
-    def save_centroids(self, fn):
+    def save_centroids(self, basename, in_subdir=True):
+        fn = self._get_asset_path(basename, in_subdir)
         with open(fn + "-centroids.csv", "wt") as f:
             cs = csv.writer(f)
             cs.writerow(
@@ -472,7 +473,8 @@ class Board:
                             [p.id, flt(x), flt(y), str(int(c.dir)), p.side, note]
                         )
 
-    def save_bom(self, fn):
+    def save_bom(self, basename, in_subdir=True):
+        fn = self._get_asset_path(basename, in_subdir)
         parts = defaultdict(list)
         rank = "UJKTRCMYB"
         for f, pp in self.parts.items():
