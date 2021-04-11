@@ -367,7 +367,7 @@ class Board:
         basename,
         in_subdir=True,
         gerber=True,
-        svg=True,
+        pdf=True,
         bom=True,
         centroids=True,
         povray=False,
@@ -377,8 +377,8 @@ class Board:
         if gerber:
             self.save_gerbers(basename, in_subdir)
 
-        if svg:
-            self.save_svg(basename, in_subdir)
+        if pdf:
+            self.save_pdf(basename, in_subdir)
 
         if povray:
             substrate = self.substrate()
@@ -416,33 +416,37 @@ class Board:
         with open(assetpath + "_NPTH.DRL", "wt") as f:
             excellon(f, self.npth, "NonPlated,%s,NPTH" % (ls))
 
-    def save_svg(self, basename, in_subdir=True, save_png=False):
+    def save_pdf(self, basename, in_subdir=True):
+        self.save_svg(basename, in_subdir=in_subdir, formats=["pdf"])
+
+    def save_png(self, basename, in_subdir=True):
+        self.save_svg(basename, in_subdir=in_subdir, formats=["png"])
+
+    def save_svg(self, basename, in_subdir=True, formats=["svg"]):
         assetpath = self._get_asset_path(basename, in_subdir)
 
         from pcbflow.svgout import svg_write
 
-        print("Rendering preview_top.svg...")
-        svg_write(self, assetpath + "_preview_top.svg", style="top", save_png=save_png)
-        print("Rendering preview_top_docu.svg...")
+        print("Rendering preview_top.%s..." % (formats))
+        svg_write(self, assetpath + "_preview_top.svg", style="top", formats=formats)
+        print("Rendering preview_top_docu.%s..." % (formats))
         svg_write(
             self,
             assetpath + "_preview_top_docu.svg",
             style="top_docu",
-            save_png=save_png,
+            formats=formats,
         )
-        print("Rendering preview_bot.svg...")
-        svg_write(
-            self, assetpath + "_preview_bot.svg", style="bottom", save_png=save_png
-        )
-        print("Rendering preview_bot_docu.svg...")
+        print("Rendering preview_bot.%s..." % (formats))
+        svg_write(self, assetpath + "_preview_bot.svg", style="bottom", formats=formats)
+        print("Rendering preview_bot_docu.%s..." % (formats))
         svg_write(
             self,
             assetpath + "_preview_bot_docu.svg",
             style="bottom_docu",
-            save_png=save_png,
+            formats=formats,
         )
-        print("Rendering preview_all.svg...")
-        svg_write(self, assetpath + "_preview_all.svg", style="all", save_png=save_png)
+        print("Rendering preview_all.%s..." % (formats))
+        svg_write(self, assetpath + "_preview_all.svg", style="all", formats=formats)
 
     def save_centroids(self, fn):
         with open(fn + "-centroids.csv", "wt") as f:
@@ -491,38 +495,6 @@ class Board:
                 c.writerow(
                     [pretty_parts(pp), str(len(pp)), mfr, footprint, vendor, vendor_c]
                 )
-
-    def postscript(self, fn, layers=["GTL", "GTO"]):
-        ps = ["%!PS-Adobe-2.0"]
-        ps.append("72 72 translate")
-        ps.append(".05 setlinewidth")
-
-        body = self.body()
-        pts = 72 / INCHES(1)
-
-        def addring(r, style="stroke"):
-            ps.append("newpath")
-            a = "moveto"
-            for (x, y) in r.coords:
-                ps.append("%f %f %s" % (x * pts, y * pts, a))
-                a = "lineto"
-            ps.append(style)
-
-        addring(body.exterior)
-        [addring(p) for p in body.interiors]
-        for layer in layers:
-            for _, p in self.layers[layer].polys:
-                if isinstance(p, sg.MultiPolygon):
-                    pass
-                else:
-                    addring(p.exterior)
-        # [addring(p.exterior) for (_, p) in self.layers["GTL"].polys]
-        rings = [body.exterior] + [r for r in body.interiors]
-
-        ps.append("showpage")
-
-        with open(fn, "wt") as f:
-            f.write("".join([l + "\n" for l in ps]))
 
     #########################################################################
     #
