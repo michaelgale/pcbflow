@@ -87,6 +87,14 @@ def col_str(items):
     return "".join(cs)
 
 
+def pad_bound(pad):
+    minx = pad.xy[0] - pad.pw / 2
+    maxx = pad.xy[0] + pad.pw / 2
+    miny = pad.xy[1] - pad.h / 2
+    maxy = pad.xy[1] + pad.h / 2
+    return (minx, miny, maxx, maxy)
+
+
 def max_bounds(bounds, min_bound=5):
     mbounds = [1e18, 1e18, -1e18, -1e18]
     for b in bounds:
@@ -96,7 +104,7 @@ def max_bounds(bounds, min_bound=5):
             mbounds[2] = max(mbounds[2], b[2])
             mbounds[3] = max(mbounds[3], b[3])
     # if no valid baounds, return a safe minimum rectangle
-    if mbounds[0] > mbounds[3]:
+    if mbounds[0] > mbounds[2]:
         return (-min_bound, -min_bound, min_bound, min_bound)
     # apply a small boundary margin
     mbounds = [

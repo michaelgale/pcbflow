@@ -6,8 +6,7 @@
 from pcbflow import *
 
 
-class SOT23(Part):
-
+class SOT23(PCBPart):
     def __init__(self, *args, **kwargs):
         self.family = "U"
         self.footprint = "SOT23"
@@ -22,8 +21,7 @@ class SOT23(Part):
         [p.set_name(nm) for p, nm in zip(self.pads, ("1", "2", "3"))]
 
 
-class SOT223(Part):
-
+class SOT223(PCBPart):
     def __init__(self, *args, **kwargs):
         self.family = "U"
         self.footprint = "SOT223"
@@ -54,7 +52,7 @@ class SOT223(Part):
         return (self.pads[3], self.pads[0])
 
 
-class SOT764(Part):
+class SOT764(PCBPart):
     family = "U"
 
     def place(self, dc):

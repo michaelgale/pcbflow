@@ -34,7 +34,7 @@ def pretty_parts(nms):
     return ",".join(ni)
 
 
-class Part:
+class PCBPart:
     def __init__(self, dc, val=None, source=None, side="top", **kwargs):
         self.mfr = ""
         if "family" not in self.__dict__:
@@ -61,10 +61,11 @@ class Part:
             self.__dict__[k] = v
 
         self.place(dc)
+        self.bounds = self.get_bounds()
 
     def place(self, dc):
         raise NotImplementedError(
-            "Part class must be inherited from a class that implements the place method"
+            "PCBPart class must be inherited from a class that implements the place method"
         )
 
     def __str__(self):
@@ -92,6 +93,27 @@ class Part:
         )
         s.append(col_str(sp))
         return "\n".join(s)
+
+    def get_bounds(self):
+        pbounds = []
+        for pad in self.pads:
+            pbounds.append(pad_bound(pad))
+        maxb = max_bounds(pbounds, min_bound=0)
+        return maxb
+
+    def fanout(self, nets=None, length=None, relative_to="outside"):
+        layer = "GTL" if self.side == "top" else "GBL"
+        if nets is None:
+            return
+        for pad in self.pads:
+            if pad.name is not None:
+                if not pad.name == "" and pad.name in nets:
+                    pad.push()
+                    if relative_to == "inside":
+                        pad.turtle("i").wvia(layer=layer, net=pad.name, length=length)
+                    else:
+                        pad.turtle("o").wvia(layer=layer, net=pad.name, length=length)
+                    pad.pop()
 
     def text(self, dc, s):
         (x, y) = dc.xy

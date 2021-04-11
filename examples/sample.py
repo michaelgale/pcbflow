@@ -7,6 +7,7 @@ from pcbflow import *
 if __name__ == "__main__":
     brd = Board((55, 30))
     brd.add_inner_copper_layer(2)
+    brd.add_named_rect((27, 25), (40, 10), "GP2", "GND")
 
     brd.add_part((5, 15), HDMI, side="top", rot=90, family="J")
     brd.add_part((32, 15), QFN64, side="top")
@@ -33,12 +34,13 @@ if __name__ == "__main__":
     for p in ["D+", "D-"]:
         usb_con.pad(p).turtle("R90 f2 r 45 f1 L45 f 2 .GBL f 2").wire()
     rx.pads[1].turtle("o f5 l45 f1.02 r45 f3 > U1-1").wire()
-    ry.pads[1].turtle("o f5 l45 f2 l45 .GP3 f2 . GTL r45 f4 > U1-2").wire()
+    ry.pads[1].turtle("o f5 l45 f2 l45 .GP3 f2 .GTL r45 f4 > U1-2").wire()
 
-    brd.add_named_rect((27, 25), (40, 10), "GP2", "GND")
     brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GBL", "VCC")
+    brd.fill_layer("GP2", "VCC")
+    brd.fill_layer("GP3", "GND")
 
     brd.save("%s" % (__file__[:-3]))
 

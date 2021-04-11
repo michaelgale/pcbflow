@@ -6,9 +6,7 @@
 from pcbflow import *
 
 
-class Discrete2(Part):
-
-
+class Discrete2(PCBPart):
     def fanout(self, pad1=None, pad2=None):
         layer = "GTL" if self.side == "top" else "GBL"
         if pad1 is not None:
@@ -18,7 +16,6 @@ class Discrete2(Part):
 
 
 class C0402(Discrete2):
-
     def __init__(self, *args, family="C", **kwargs):
         self.family = family
         self.footprint = "0402"
@@ -52,7 +49,6 @@ class C0402(Discrete2):
 
 
 class C0603(Discrete2):
-
     def __init__(self, *args, family="C", **kwargs):
         self.family = family
         self.footprint = "0603"
@@ -79,8 +75,8 @@ class C0603(Discrete2):
         self.label(dc, angle=dc.dir)
         dc.pop()
 
-class C0805(Discrete2):
 
+class C0805(Discrete2):
     def __init__(self, *args, family="C", **kwargs):
         self.family = family
         self.footprint = "0805"
@@ -109,7 +105,6 @@ class C0805(Discrete2):
 
 
 class C1206(Discrete2):
-
     def __init__(self, *args, family="C", **kwargs):
         self.family = family
         self.footprint = "1206"
@@ -138,44 +133,40 @@ class C1206(Discrete2):
 
 
 class R0402(C0402):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, family="R", **kwargs)
+
 
 class R0603(C0603):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, family="R", **kwargs)
+
 
 class R0805(C0805):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, family="R", **kwargs)
 
-class R1206(C1206):
 
+class R1206(C1206):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, family="R", **kwargs)
 
 
 class L0402(C0402):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, family="L", **kwargs)
 
 
 class L0603(C0603):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, family="L", **kwargs)
 
-class L0805(C0805):
 
+class L0805(C0805):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, family="L", **kwargs)
 
 
 class L1206(C1206):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, family="L", **kwargs)

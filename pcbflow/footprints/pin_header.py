@@ -6,7 +6,7 @@
 from pcbflow import *
 
 
-class PTH(Part):
+class PTH(PCBPart):
     def __init__(self, *args, **kwargs):
         if "diameter" not in kwargs and "diameter" not in self.__dict__:
             raise ValueError(
@@ -21,6 +21,8 @@ class PTH(Part):
         super().__init__(*args, **kwargs)
 
     def gh(self, dc):
+        dc.pw = self.diameter
+        dc.h = self.diameter
         dc.board.add_drill(dc.xy, self.diameter)
         p = dc.copy()
         p.n_agon(self.diameter, 8)

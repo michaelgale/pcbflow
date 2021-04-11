@@ -6,8 +6,7 @@
 from pcbflow import *
 
 
-class TSSOP(Part):
-
+class TSSOP(PCBPart):
     def __init__(self, *args, N=None, footprint="TSSOP", **kwargs):
         self.family = "U"
         self.footprint = footprint
@@ -30,29 +29,25 @@ class TSSOP(Part):
 
 
 class TSSOP14(TSSOP):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, N=14, footprint="TSSOP14", **kwargs)
 
 
 class TSSOP16(TSSOP):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, N=16, footprint="TSSOP16", **kwargs)
 
 
 class TSSOP20(TSSOP):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, N=20, footprint="TSSOP20", **kwargs)
 
 
 class TSSOP24(TSSOP):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, N=24, footprint="TSSOP24", **kwargs)
 
-class TSSOP28(TSSOP):
 
+class TSSOP28(TSSOP):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, N=28, footprint="TSSOP28", **kwargs)

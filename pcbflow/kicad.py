@@ -2,6 +2,9 @@
 #
 # KiCad part/footprint importer
 #
+import os
+import glob
+
 import shapely.geometry as sg
 import shapely.affinity as sa
 import shapely.ops as so
@@ -17,8 +20,10 @@ KI_LAYER_DICT = {
     "F.Fab": "GTD",
 }
 
+ALL_KICAD_MOD_FILES = None
 
-class KiCadPart(Part):
+
+class KiCadPart(PCBPart):
     def __init__(self, dc, val=None, source=None, libraryfile=None, **kwargs):
         self.libraryfile = libraryfile
         self.smd_pads = []
@@ -28,7 +33,13 @@ class KiCadPart(Part):
         self.circles = []
         self.labels = []
         self.docu = []
+        if "side" not in self.__dict__:
+            self.side = "top"
+        if "side" in kwargs:
+            self.side = kwargs["side"]
         self.parse()
+        if "family" in kwargs:
+            self.family = kwargs["family"]
         super().__init__(dc, val, source, **kwargs)
 
     def _add_obj_to_layer(self, obj, layer):
@@ -45,6 +56,15 @@ class KiCadPart(Part):
                 self.board.layers["GTL"].add(obj)
 
     def place(self, dc):
+        for line in self.lines:
+            p0 = dc.copy().goxy(*line["coords"][0])
+            p1 = dc.copy().goxy(*line["coords"][1])
+            width = self.board.drc.silk_width
+            if line["width"] > 0:
+                width = line["width"]
+            g = sg.LineString([p0.xy, p1.xy]).buffer(width / 2)
+            self._add_obj_to_layer(g, line["layers"][0])
+
         for poly in self.polys:
             width = self.board.drc.silk_width
             if poly["width"] > 0:
@@ -66,20 +86,11 @@ class KiCadPart(Part):
             g = sg.Polygon(gc.exterior.coords).buffer(width)
             self._add_obj_to_layer(g, circle["layer"])
 
-        for line in self.lines:
-            p0 = dc.copy().goxy(*line["coords"][0])
-            p1 = dc.copy().goxy(*line["coords"][1])
-            width = self.board.drc.silk_width
-            if line["width"] > 0:
-                width = line["width"]
-            g = sg.LineString([p0.xy, p1.xy]).buffer(width / 2)
-            self._add_obj_to_layer(g, line["layers"][0])
-
         for pad in self.smd_pads:
             p = dc.copy().goxy(*pad["xy"])
             p.rect(*pad["size"])
+            p.set_name(pad["name"])
             if "GTL" in pad["layers"]:
-                p.set_name(pad["name"])
                 no_paste = True if "GTP" not in pad["layers"] else False
                 self.smd_pad(p, ignore_paste=no_paste)
             elif "GTP" in pad["layers"]:
@@ -125,7 +136,7 @@ class KiCadPart(Part):
         for e in items:
             if isinstance(e, dict):
                 if "at" in e:
-                    xy = float(e["at"][0]), float(e["at"][1])
+                    xy = float(e["at"][0]), -float(e["at"][1])
                 elif "layer" in e:
                     layer = self._map_layers(e["layer"])[0]
         if text == "reference":
@@ -137,7 +148,7 @@ class KiCadPart(Part):
             if isinstance(e, dict):
                 if "pts" in e:
                     for pt in e["pts"]:
-                        coords.append((float(pt[2]), float(pt[3])))
+                        coords.append((float(pt[2]), -float(pt[3])))
                 elif "width" in e:
                     width = float(e["width"][0])
                 elif "layer" in e:
@@ -153,10 +164,10 @@ class KiCadPart(Part):
             if isinstance(e, dict):
                 if "center" in e:
                     pt = e["center"]
-                    center = (float(pt[0]), float(pt[1]))
+                    center = (float(pt[0]), -float(pt[1]))
                 if "end" in e:
                     pt = e["end"]
-                    end = (float(pt[0]), float(pt[1]))
+                    end = (float(pt[0]), -float(pt[1]))
                     diameter = max(abs(center[0] - end[0]), abs(center[1] - end[1]))
                 elif "width" in e:
                     width = float(e["width"][0])
@@ -175,11 +186,11 @@ class KiCadPart(Part):
                 if "start" in e:
                     coord = e["start"]
                     x, y = float(coord[0]), float(coord[1])
-                    coords.append((float(coord[0]), float(coord[1])))
+                    coords.append((float(coord[0]), -float(coord[1])))
                 elif "end" in e:
                     coord = e["end"]
                     x, y = float(coord[0]), float(coord[1])
-                    coords.append((float(coord[0]), float(coord[1])))
+                    coords.append((float(coord[0]), -float(coord[1])))
                 elif "width" in e:
                     width = float(e["width"][0])
                 elif "layer" in e:
@@ -198,7 +209,7 @@ class KiCadPart(Part):
             for e in items[2:]:
                 if isinstance(e, dict):
                     if "at" in e:
-                        xy = float(e["at"][0]), float(e["at"][1])
+                        xy = float(e["at"][0]), -float(e["at"][1])
                     elif "size" in e:
                         size = float(e["size"][0]), float(e["size"][1])
                     elif "layers" in e:
@@ -212,7 +223,7 @@ class KiCadPart(Part):
             for e in items[3:]:
                 if isinstance(e, dict):
                     if "at" in e:
-                        xy = float(e["at"][0]), float(e["at"][1])
+                        xy = float(e["at"][0]), -float(e["at"][1])
                     elif "size" in e:
                         size = float(e["size"][0]), float(e["size"][1])
                     # TODO: support oval shaped drill, i.e. slot
@@ -260,3 +271,29 @@ class KiCadPart(Part):
 
 
 # TODO   (fp_arc (start 0 0) (end 0 4) (angle -65) (layer F.Fab) (width 0.1))
+
+
+class SkiPart(KiCadPart):
+    def __init__(self, dc, skipart, **kwargs):
+        self.skipart = skipart
+        self.footprint = skipart.footprint
+        lfn = self._find_footprint_file(skipart.footprint)
+        super().__init__(
+            dc, val=skipart.value, libraryfile=lfn, family=skipart.ref_prefix, **kwargs
+        )
+        for pad in self.pads:
+            for pin in self.skipart.pins:
+                if str(pin.num) == str(pad.name):
+                    if len(pin.nets) == 1:
+                        pad.name = pin.nets[0].name
+
+    def _find_footprint_file(self, libraryfile):
+        global ALL_KICAD_MOD_FILES
+        if ALL_KICAD_MOD_FILES is None:
+            ALL_KICAD_MOD_FILES = glob.glob(
+                FP_LIB_PATH + os.sep + "**/*.kicad_mod", recursive=True
+            )
+        for f in ALL_KICAD_MOD_FILES:
+            if libraryfile in f:
+                return f
+        return None

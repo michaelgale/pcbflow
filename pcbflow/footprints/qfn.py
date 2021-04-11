@@ -6,8 +6,7 @@
 from pcbflow import *
 
 
-class QFN64(Part):
-
+class QFN64(PCBPart):
     def __init__(self, *args, **kwargs):
         self.family = "U"
         self.footprint = "QFN64"

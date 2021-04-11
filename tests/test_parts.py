@@ -7,7 +7,7 @@ from pcbflow import *
 def test_add_part():
     brd = Board()
     with pytest.raises(NotImplementedError):
-        p0 = Part(brd.DC((5, 5)))
+        p0 = PCBPart(brd.DC((5, 5)))
     # add with XY tuple
     brd.add_part((1, 2), SOT23, side="top")
     # add with DC

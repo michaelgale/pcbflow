@@ -6,7 +6,7 @@
 from pcbflow import *
 
 
-class Castellation(Part):
+class Castellation(PCBPart):
     family = "J"
     inBOM = False
 

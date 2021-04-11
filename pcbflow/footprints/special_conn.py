@@ -6,8 +6,7 @@
 from pcbflow import *
 
 
-class HDMI(Part):
-
+class HDMI(PCBPart):
     def __init__(self, *args, **kwargs):
         self.family = "J"
         self.mfr = "HDMI-001"

@@ -12,7 +12,7 @@ import shapely.geometry as sg
 import shapely.affinity as sa
 import shapely.ops as so
 
-from .part import Part
+from .part import PCBPart
 from .util import col_print, infer_family
 
 LAYER_DIMENSION = "20"
@@ -72,7 +72,7 @@ def parse_rotation(attr):
     return 0.0
 
 
-class EaglePart(Part):
+class EaglePart(PCBPart):
     def __init__(
         self,
         dc,

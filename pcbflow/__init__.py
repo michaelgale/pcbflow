@@ -11,6 +11,8 @@ VERSION = __project__ + "-" + __version__
 
 script_dir = os.path.dirname(__file__)
 
+FP_LIB_PATH = "/Library/Application Support/kicad/modules/"
+
 
 def INCHES(x):
     return x * 25.4
@@ -33,6 +35,7 @@ from .util import (
     better_coords,
     col_print,
     col_str,
+    pad_bound,
     max_bounds,
     infer_family,
 )
@@ -40,10 +43,10 @@ from .gerber import Gerber
 from .excellon import excellon
 from .hershey import text, ltext, ctext
 from .drc import DRC
-from .part import Part, pretty_parts
+from .part import PCBPart, pretty_parts
 from .footprints import *
 from .eagle import EaglePart, list_lbr_packages, show_lbr_package
-from .kicad import KiCadPart
+from .kicad import KiCadPart, SkiPart
 from .layer import Layer, OutlineLayer, DEFAULT_LAYERS, DEFAULT_LAYER_ORDER
 from .draw import Turtle, Draw
 from .board import Board

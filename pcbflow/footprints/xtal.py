@@ -6,8 +6,7 @@
 from pcbflow import *
 
 
-class SMD_3225_4P(Part):
-
+class SMD_3225_4P(PCBPart):
     def __init__(self, *args, **kwargs):
         self.family = "Y"
         self.footprint = "4-SMD"

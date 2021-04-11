@@ -81,16 +81,14 @@ class Draw(Turtle):
         self.name = None
         self.newpath()
         self.width = board.drc.trace_width
+        self.pw = None
         self.h = None
         self.length = 0
         self.side = "top"
-        self.defaults()
-
-    def defaults(self):
         self.layer = "GTL"
 
     def is_bottom_layer(self):
-        if self.layer in ["GBS", "GBO", "GBL", "GBP"]:
+        if self.layer in ["GBS", "GBO", "GBL", "GBP", "GBD"]:
             return True
         if self.side == "bottom":
             return True
@@ -113,11 +111,11 @@ class Draw(Turtle):
         return self
 
     def push(self):
-        self.stack.append((self.xy, self.dir))
+        self.stack.append((self.xy, self.dir, self.width))
         return self
 
     def pop(self):
-        (self.xy, self.dir) = self.stack.pop(-1)
+        (self.xy, self.dir, self.width) = self.stack.pop(-1)
         return self
 
     def copy(self):
@@ -127,6 +125,7 @@ class Draw(Turtle):
         r.name = self.name
         r.part = self.part
         r.width = self.width
+        r.pw = self.pw
         r.side = self.side
         return r
 
@@ -215,6 +214,7 @@ class Draw(Turtle):
         self.right(90)
         self.forward(w)
         self.pop()
+        self.pw = w
         self.h = h  # used by inside, outside for pad escape
         return self
 
@@ -243,12 +243,52 @@ class Draw(Turtle):
         return self
 
     def inside(self):
-        self.right(180)
-        self.forward(self.h / 2)
+        mb = self.board.get_part(self.part).bounds
+        dleft = abs((self.xy[0] + self.pw / 2) - mb[0])
+        dright = abs((self.xy[0] - self.pw / 2) - mb[2])
+        dtop = abs((self.xy[1] - self.h / 2) - mb[3])
+        dbottom = abs((self.xy[1] + self.h / 2) - mb[1])
+        min_diff = min([dleft, dright, dtop, dbottom])
+        if min_diff == dleft:
+            self.dir = 90
+            self.xy = (self.xy[0] + self.pw / 2, self.xy[1])
+        elif min_diff == dright:
+            self.dir = -90
+            self.xy = (self.xy[0] - self.pw / 2, self.xy[1])
+        elif min_diff == dtop:
+            self.dir = 180
+            self.xy = (self.xy[0], self.xy[1] - self.h / 2)
+        elif min_diff == dbottom:
+            self.dir = 0
+            self.xy = (self.xy[0], self.xy[1] + self.h / 2)
+        else:
+            self.right(180)
+            ml = max(self.pw, self.h) / 2
+            self.forward(ml)
         return self
 
     def outside(self):
-        self.forward(self.h / 2)
+        mb = self.board.get_part(self.part).bounds
+        dleft = abs((self.xy[0] - self.pw / 2) - mb[0])
+        dright = abs((self.xy[0] + self.pw / 2) - mb[2])
+        dtop = abs((self.xy[1] + self.h / 2) - mb[3])
+        dbottom = abs((self.xy[1] - self.h / 2) - mb[1])
+        min_diff = min([dleft, dright, dtop, dbottom])
+        if min_diff == dleft:
+            self.dir = -90
+            self.xy = (self.xy[0] - self.pw / 2, self.xy[1])
+        elif min_diff == dright:
+            self.dir = 90
+            self.xy = (self.xy[0] + self.pw / 2, self.xy[1])
+        elif min_diff == dtop:
+            self.dir = 0
+            self.xy = (self.xy[0], self.xy[1] + self.h / 2)
+        elif min_diff == dbottom:
+            self.dir = 180
+            self.xy = (self.xy[0], self.xy[1] - self.h / 2)
+        else:
+            ml = max(self.pw, self.h) / 2
+            self.forward(ml)
         return self
 
     def square(self, width):
@@ -290,7 +330,7 @@ class Draw(Turtle):
         self.board.add_drill(self.xy, d)
 
     def via_to(self, next_layer):
-        self.via()
+        self.via(connect=self.name)
         self.layer = next_layer
 
     def via(self, connect=None):
@@ -303,8 +343,7 @@ class Draw(Turtle):
         self.board.add_drill(self.xy, self.board.drc.via_drill)
         if self.board.drc.mask_vias:
             gm = sg.Point(self.xy).buffer(dv + self.board.drc.soldermask_margin)
-            self.board.layers["GTS"].add(gm)
-            self.board.layers["GBS"].add(gm)
+            self.board.add_to_mask_layers(gm)
         self.newpath()
         return self
 
@@ -324,8 +363,11 @@ class Draw(Turtle):
             self.newpath()
         return self
 
-    def wvia(self, layer, net=None):
-        self.forward(self.board.drc.clearance + self.board.drc.via_drill)
+    def wvia(self, layer, net=None, length=None):
+        tl = self.board.drc.clearance + self.board.drc.via_drill
+        if length is not None:
+            tl = length
+        self.forward(tl)
         self.wire(width=self.board.drc.via_track_width, layer=layer)
         self.via(net)
 
@@ -341,8 +383,7 @@ class Draw(Turtle):
         g3 = g1.buffer(
             self.board.drc.soldermask_margin + self.board.drc.via_annular_ring
         )
-        brd.layers["GTS"].add(g3)
-        brd.layers["GBS"].add(g3)
+        self.board.add_to_mask_layers(g3)
         g3 = g1.buffer(self.board.drc.via_annular_ring)
         g4 = g3.difference(g1.buffer(-self.board.drc.via_annular_ring / 2))
         for l in self.board.get_copper_layers(as_names=True):
@@ -362,7 +403,7 @@ class Draw(Turtle):
         part = self.board.get_part(ref)
         if part is not None:
             loc = part.pads[pad].xy
-            (dx, dy) = self.seek(part.pads[pad])
+            # (dx, dy) = self.seek(part.pads[pad])
             self.path.append(loc)
             return self.wire()
         return self

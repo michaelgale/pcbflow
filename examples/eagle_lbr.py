@@ -8,14 +8,15 @@ if __name__ == "__main__":
 
     brd = Board((50, 50))
     EaglePart(brd.DC((10, 40)), libraryfile="sparkfun.lbr", partname="TSSOP-24")
-    EaglePart(brd.DC((35, 25)), libraryfile="sparkfun.lbr", partname="ARDUINO_MINI")
+    EaglePart(brd.DC((35, 34)), libraryfile="sparkfun.lbr", partname="ARDUINO_MINI")
+    uc = EaglePart(brd.DC((40, 9)), libraryfile="sparkfun.lbr", partname="TQFP64")
     usb_con = EaglePart(
         brd.DC((10, 10)), libraryfile="sparkfun.lbr", partname="USB-B-SMT", side="top"
     )
     # usb_con.s("D-").w("r 90 f 5 l 90 f 10").wire(width=0.25)
     usb_con.pads[3].w("r 90 f 5 l 90 f 10").wire(width=0.25)
     print(usb_con)
-
+    uc.pads[8].turtle("o f 3").wire()
     brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GBL", "VCC")

@@ -12,7 +12,7 @@ class DRC:
         self.trace_width = MILS(8)
         self.via_drill = 0.5
         self.via_annular_ring = MILS(8)
-        self.via_track_width = MILS(16)
+        self.via_track_width = MILS(12)
         # Clearances
         self.clearance = MILS(8)
         self.outline_clearance = MILS(20)

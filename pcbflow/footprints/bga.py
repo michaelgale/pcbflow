@@ -6,8 +6,7 @@
 from pcbflow import *
 
 
-class FTG256(Part):
-
+class FTG256(PCBPart):
     def __init__(self, *args, **kwargs):
         self.family = "U"
         self.footprint = "FTG256"

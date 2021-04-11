@@ -160,6 +160,10 @@ class Board:
             g.difference(notouch.buffer(self.drc.clearance)), netname
         )
 
+    def add_to_mask_layers(self, obj):
+        self.layers["GTS"].add(obj)
+        self.layers["GBS"].add(obj)
+
     #########################################################################
     #
     # String Methods
@@ -191,7 +195,7 @@ class Board:
                         if net[0] is not None:
                             ld[net[0]] += 1
                     for kd, vd in ld.items():
-                        sd.append("%s: %d" % (kd, vd))
+                        sd.append("%s: %d " % (kd, vd))
                     if len(sd) > 0:
                         s.append(
                             "Layer %s : %-16s Nets: %d"

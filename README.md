@@ -182,17 +182,18 @@ brd.add_named_rect((1, 10), (20, 3), "GBL", "VCC")
 
 ## Parts
 
-Parts can be added in three ways:
+Parts can be added in four ways:
 
-1. Drawing directly with primitives in class derived from `Part` (see the `footprints` folder for examples)
+1. Drawing directly with primitives in class derived from `PCBPart` (see the `footprints` folder for examples)
 2. Importing a package from an Eagle library file using `EaglePart`
 3. Importing a footprint from a KiCAD footprint library file using `KiCadPart`
+4. Instantiating a part from a SKiDL circuit using `SkiPart`
 
 ```python
 # adding a generic part with SOT23(Part)
 brd.add_part((10, 20), SOT23, side="top")
-# adding a generic R0603(Part) SMD resistor by passing the board "Drawing Context" (DC)
-#   Part classes instantiate themselves directly from DC--this allows the part
+# adding a generic R0603(PCBPart) SMD resistor by passing the board "Drawing Context" (DC)
+#   PCBPart classes instantiate themselves directly from DC--this allows the part
 #   to derive its location, orientation, etc.
 R0603(brd.DC((20, 10)), "4.7k", side="bottom")
 # this is also equivalent:
@@ -223,7 +224,7 @@ usb_con = EaglePart(brd.DC((10, 10)), libraryfile="sparkfun.lbr", partname="USB-
 # if width is omitted it will use the default trace_width in Board.DRC
 usb_con.pads[3].w("r 90 f 5 l 90 f 10").wire(width=0.25)
 
-# print a Part's details (pad 3 happens to be the USB connector's D- line)
+# print a PCBPart's details (pad 3 happens to be the USB connector's D- line)
 print(usb_con)
 # Part: 3   top    ( 10.00,  10.00) / 0 deg  6 pads
 #   0: 5 (10.58, 16.80)    1: 6 (10.58, 3.20)     2: D+ (17.00, 11.88)   3: D- (22.00, 20.62)   4: GND (17.00, 9.38)
