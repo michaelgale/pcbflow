@@ -10,7 +10,11 @@ from skidl import *
 if __name__ == "__main__":
     brd = Board((55, 30))
     brd.add_inner_copper_layer(2)
-
+    holes = ((5, 5), (5, 25), (50, 5), (50, 25))
+    for hole in holes:
+        brd.add_hole(hole, 2.0)
+    brd.add_text((10, 25), "Made with pcbflow", justify="left")
+    brd.add_text((10, 25), "Made with pcbflow", layer="GBL", keepout_box=True, justify="left")
     # Declare microcontroller
     mcu = Part(
         "DSP_Microchip_DSPIC33",
@@ -69,4 +73,19 @@ if __name__ == "__main__":
     brd.fill_layer("GP3", "GND")
 
     # brd.save("%s" % (__file__[:-3]))
+    brd.save_png("%s" % (__file__[:-3]))
     brd.save("%s" % (__file__[:-3]))
+
+"""
+convert -density 1200 skidl_test_preview_bot.pdf -resize 800x600 preview_bot.png
+convert -density 1200 skidl_test_preview_top.pdf -resize 800x600 preview_top.png
+convert -density 1200 skidl_test_preview_top_docu.pdf -resize 800x600 preview_top_docu.png
+convert -density 1200 skidl_test_preview_bot_docu.pdf -resize 800x600 preview_bot_docu.png
+convert -density 1200 skidl_test_preview_all.pdf -resize 800x600 preview_all.png
+mv preview_top.png ../../images/
+mv preview_bot.png ../../images/
+mv preview_all.png ../../images/
+mv preview_top_docu.png ../../images/
+mv preview_bot_docu.png ../../images/
+
+"""

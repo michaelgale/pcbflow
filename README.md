@@ -1,3 +1,7 @@
+| | | |
+| --- | --- | --- |
+| <img src=./images/sample_top.png> | <img src=./images/sample_bot.png> | <img src=./images/sample_all.png> |
+
 # pcbflow - Python PCB layout and design (based on CuFlow)
 
 ![python version](https://img.shields.io/static/v1?label=python&message=3.6%2B&color=blue&style=flat&logo=python)
@@ -11,11 +15,12 @@ This implementation is an experimental variation of CuFlow.  It attempts to modu
 - allow customization of track widths, drill/hole types
 - contain design rules in a class rather than the Board class
 - improve layout metrics
-- robust import of components from Eagle LBR files
+- robust import of components from Eagle LBR and KiCAD mod files
 - enhanced Gerber files with FileFunction assignments
-- enhanced SVG export
+- more export formats including stylized views for SVG, PNG, PDF
+- integration with [SKiDL](https://github.com/xesscorp/skidl) for complete scripted EDA workflow
 
-This implementation is very alpha and not documented.
+This implementation is alpha and not fully documented.
 
 ## Installation
 
@@ -255,65 +260,141 @@ brd.save(basename, in_subdir=True,
 The `in_subdir` argument specifies whether a subfolder named `basename` should be created for the assets.
 The `gerber`, `svg`, `bom`, `centroids`, `povray` arguments specify which of the asset types to generate.
 
-## Putting it Together
+
+
+## Putting it Together with SKiDL
+
+**pcbflow** is best used as a companion to [SKiDL](https://github.com/xesscorp/skidl).  SKiDL is a python based tool which allows you to script the design of electronic circuits.  SKiDL integrates with KiCAD symbol and footprint libraries to enable seamless building of circuits with a rich library of pre-built parts.
+
+After a circuit has been designed and validated with SKiDL, **pcbflow** can then be used to physically render the circuit on to a PCB.  The attributes of the PCB including its size, shape, layer stack-up, as well as some basic design rules can be customized as desired with python code.  A typical workflow will consist of the following steps:
+
+1. Generally, a script file will start with a SKiDL circuit definition. This will consist of various `Part` and `Net` declarations followed by code which makes net connections among parts.
+2. Next, a **pcbflow** `Board` instance can be declared and various `Board` methods can be used to configure the basic attributes of the PCB such as its size, layers, etc.
+3. Parts declared in SKiDL can then be placed on the PCB.  This consists of accessing SKiDL parts either by iterating through the `default_circuit.parts` attribute or iterating over `Part` assignments explictly made in the code (e.g. `mcu = Part("DSP_Microchip_DSPIC33", "DSPIC33EP256MU806-xPT", footprint="TQFP-64_10x10mm_P0.5mm",)`)
+4. Each part will require the instantiation of a `SkiPart(brd.DC(x, y), part, side=side)` object.  This explictly tells **pcbflow** where the part should physically be placed on the PCB with its `x`, `y` coordinates and on which side of the PCB it is placed (`"top"` or `"bottom"`).  The `SkiPart` object initialization can be passed a native SKiDL `Part` instance in order to derive the physical footprint, reference designator, family, etc.
+5. After parts have been placed, network connections can then be made using a combination of **pcbflow** operations including:
+    - "fanout" pads to named vias
+    - adding named polygons which can absorb a via connection or part pad of the same net name
+    - "turtle" style routing commands to physically describe a net route path
+6. Special PCB features such as "keepout" regions, text annotations, bitmap logos, mounting holes, etc. can be added to the PCB as desired.
+7. If any layers are desired to be "flooded" with a named signal (e.g. a GND fill), then the `Board.fill_layer()` method can be called on any of the PCB layers as required.
+8. Lastly, the rendered PCB can be saved to a variety of asset files as desired including:
+   - Gerber files for fabrication
+   - BOM and centroid placement CSV files
+   - PDF, SVG, PNG preview files for iterative checking of the board appearance or documentation
+
+An example script is shown below:
 
 ```python
+import os
+import math
+import glob
+import shapely.geometry as sg
+
 from pcbflow import *
+from skidl import *
 
-brd = Board((55, 30))
-brd.add_inner_copper_layer(2)
 
-brd.add_part((5, 15), HDMI, side="top", rot=90, family="J")
-brd.add_part((32, 15), QFN64, side="top")
-rx = brd.add_part((15, 18), R0603, side="top")
-ry = brd.add_part((15, 12), R0603, side="top", val="4.7k")
-brd.add_part((15, 25), R0603, side="top", val="200", rot=90).fanout("VCC", None)
-C0603(brd.DC((35, 23)), "0.1 uF", side="top").fanout("GND", "VCC")
-C0603(brd.DC((41, 22)), "0.1 uF", side="bottom").fanout("GND", None)
-C0603(brd.DC((35, 7)).right(90), "0.1 uF", side="top").fanout("VCC", "GND")
-C0603(brd.DC((42, 8)).right(90), "0.1 uF", side="bottom").fanout("VCC", None)
+if __name__ == "__main__":
+    ###
+    ### SKiDL Circuit Declarations
+    ###
 
-for x in range(5):
-    brd.add_part((5 + x * 3, 4), C0402, side="top")
+    # Declare microcontroller
+    mcu = Part(
+        "DSP_Microchip_DSPIC33",
+        "DSPIC33EP256MU806-xPT",
+        footprint="TQFP-64_10x10mm_P0.5mm",
+    )
+    # Declare a generic 0603 capacitor
+    cap = Part(
+        "Device",
+        "C",
+        footprint="C_0603_1608Metric_Pad1.08x0.95mm_HandSolder",
+        dest=TEMPLATE,
+    )
+    # Declare 3 instances of our generic capacitor with values
+    c1 = cap(value="10uF")
+    c2 = cap(value="0.1uF")
+    c3 = cap(value="0.1uF")
 
-brd.add_part((25, 25), SOT23, side="bottom")
-brd.add_part((20, 8), SOT223, side="bottom")
-brd.add_part((35, 5), SOIC8, side="bottom")
-usb_con = EaglePart(
-    brd.DC((50, 15)).right(180),
-    libraryfile="sparkfun.lbr",
-    partname="USB-B-SMT",
-    side="top",
-)
-for p in ["D+", "D-"]:
-    usb_con.pad(p).turtle("R90 f2 r 45 f1 L45 f 2 .GBL f 2").wire()
-rx.pads[1].turtle("o f5 l45 f1.02 r45 f3 > U1-1").wire()
-ry.pads[1].turtle("o f5 l45 f2 l45 .GP3 f2 . GTL r45 f4 > U1-2").wire()
+    # Create GND and VDD nets
+    vdd = Net("VDD")
+    gnd = Net("GND")
 
-brd.add_named_rect((27, 25), (40, 10), "GP2", "GND")
-brd.add_outline()
-brd.fill_layer("GTL", "GND")
-brd.fill_layer("GBL", "VCC")
+    ###
+    ### pcbflow PCB Declarations
+    ###
 
-brd.save("%s" % (__file__[:-3]))
+    # Create a pcbflow Board instance
+    brd = Board((55, 30))
+    
+    # add two inner copper layers (named GP2, GP3)
+    brd.add_inner_copper_layer(2)
+    # Place 2 mm mounting holes in the corners
+    holes = ((5, 5), (5, 25), (50, 5), (50, 25))
+    for hole in holes:
+        brd.add_hole(hole, 2.0)
+    # Add some text (silkscreen on the top), as copper on the bottom
+    brd.add_text((10, 25), "Made with pcbflow", justify="left")
+    brd.add_text((10, 25), "Made with pcbflow", layer="GBL", keepout_box=True, justify="left")
+
+    # Place a VDD patch under MCU on layer GP3
+    brd.add_named_rect((27, 25), (45, 5), layer="GP3", name="VDD")
+
+    # Assign VDD and GND to our parts
+    mcu["VDD"] += vdd
+    mcu["VSS"] += gnd
+    for c in [c1, c2, c3]:
+        c[1] += vdd
+        c[2] += gnd
+
+    # Assign a convenient reference to the default SKiDL circuit
+    ckt = default_circuit
+    print("Circuit:  Parts: %d  Nets: %d" % (len(ckt.parts), len(ckt.nets)))
+
+    # Assign part locations (we're adding an extra atrribute to the skidl.Part object)
+    mcu.loc = (35, 15)
+    c1.loc = (25,15)
+    c2.loc = (45,15)
+    c3.loc = (37,6.5)
+    sides = ["top", "bottom", "top", "bottom"]
+
+    # Instantiate SkiPart(PCBPart) instances
+    for part, side in zip(ckt.parts, sides):
+        sp = SkiPart(brd.DC(part.loc), part, side=side)
+        # "fanout" GND and VDD vias from parts with GND and VDD net connections
+        sp.fanout(["VDD"])
+        sp.fanout(["GND"], relative_to="inside")
+
+    print(brd.parts_str())
+    
+    # finish the PCB with an outline and poured copper layers
+    brd.add_outline()
+    brd.fill_layer("GTL", "GND")
+    brd.fill_layer("GBL", "GND")
+    brd.fill_layer("GP3", "GND")
+
+    # Save the rendered PCB to asset files 
+    brd.save("%s" % (__file__[:-3]))
 ```
-| Top |
-| --- |
-| <img src=./images/sample_top.png> |
 
-| Bottom |
-| --- |
-| <img src=./images/sample_bot.png> |
+| Top | Top Document |
+| --- | --- |
+| <img src=./images/preview_top.png> | <img src=./images/preview_top_docu.png> |
+
+| Bottom | Bottom Document |
+| --- | --- |
+| <img src=./images/preview_bot.png> | <img src=./images/preview_bot_docu.png> |
 
 | All |
 | --- |
-| <img src=./images/sample_all.png> |
+| <img src=./images/preview_all.png> |
 
 
 ## To Do
 
-- Expand default/basic parts library
-- Routeing and Nets
+- Routing and Nets
 - DRC checking
 - More tests
 - CI
