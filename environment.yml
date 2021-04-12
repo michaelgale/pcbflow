@@ -1,0 +1,19 @@
+name: pcbflow
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.6
+  - ipython
+  - pyparsing
+  - sphinx=3.2.1
+  - sphinx_rtd_theme
+  - sphinx-autodoc-typehints
+  - black=19.10b0
+  - codecov
+  - pytest
+  - pytest-cov
+  - numpy
+  - pip
+  - pip:
+    - "--editable=."

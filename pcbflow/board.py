@@ -34,20 +34,20 @@ class Board:
 
     def DC(self, xy, d=0):
         """Returns a drawing context from the current board.
-        Arguments:
-        :param xy : x, y coordinate tuple
-        :param d : d direction angle (deg)
-        Return values:
-        :returns: Draw : drawing context object
+
+        :param xy: x, y coordinate tuple
+        :param d: d direction angle (deg)
+
+        :returns: :obj:`Draw` drawing context object
         """        
         return Draw(self, xy, d)
 
     def assign(self, part):
         """Assigns a reference designator/id to a part and adds the part to the board.
-        Arguments:
+
         :param part : A PCBPart derived object
-        Return values:
-        :returns: str : reference designator assigned to part
+
+        :returns: :obj:`str` reference designator assigned to part
         """        
         pl = self.parts[part.family]
         pl.append(part)
@@ -58,10 +58,10 @@ class Board:
 
     def get_part(self, ref):
         """Returns a PCBPart object reference from a reference designator.
-        Arguments:
+
         :param ref : Reference designator string (e.g. "U1")
-        Return values:
-        :returns: PCBPart : reference to PCBPart derived object with matching ref des
+
+        :returns: :obj:`PCBPart` reference to PCBPart derived object with matching ref des
         """        
         for k, v in self.parts.items():
             for p in v:
@@ -110,11 +110,11 @@ class Board:
 
     def get_copper_layers(self, as_names=False):
         """Returns a list of all the copper layers.
-        Arguments:
-        :param as_names : Specifies whether to return the layer list as a list of
+
+        :param as_names: Specifies whether to return the layer list as a list of
         string names or a list of Layer object references.
-        Return values:
-        :returns: list : list of string names or Layer objects
+
+        :returns: :obj:`list` of string names or Layer objects
         """        
         layers = []
         for k in self.layers:
@@ -127,7 +127,7 @@ class Board:
 
     def add_inner_copper_layer(self, layer_count=1):
         """Adds one or more copper layers between the top and bottom copper layers.
-        Arguments:
+
         :param layer_count : Specifies how many copper layers to insert
         """        
         for _ in range(layer_count):
@@ -139,14 +139,14 @@ class Board:
 
     def get_smd_pad_layers(self, side="top", as_names=False, ignore_paste=False):
         """Returns a list of layers which make up a pad stack for a surface mount pad.
-        Arguments:
-        :param side : Specifies either the "top" or "bottom" side of the PCB
-        :param as_names : Specifies whether to return the layer list as a list of
+
+        :param side: Specifies either the "top" or "bottom" side of the PCB
+        :param as_names: Specifies whether to return the layer list as a list of
         string names or a list of Layer object references.
-        :param ignore_paste : Specifies whether to ignore the solder paste layer
+        :param ignore_paste: Specifies whether to ignore the solder paste layer
         from the returned layer list
-        Return values:
-        :returns: list : list of string names or Layer objects
+
+        :returns: :obj:`list` of string names or Layer objects
         """        
         layers = []
         for k, v in self.layers.items():
@@ -161,11 +161,11 @@ class Board:
 
     def get_pad_stack_layers(self, as_names=False):
         """Returns a list of layers which make up a pad stack for a through hole pad.
-        Arguments:
+
         :param as_names : Specifies whether to return the layer list as a list of
         string names or a list of Layer object references.
-        Return values:
-        :returns: list : list of string names or Layer objects
+
+        :returns: :obj:`list` of string names or Layer objects
         """        
         layers = []
         layers.extend(self.get_copper_layers(as_names=as_names))
@@ -188,51 +188,51 @@ class Board:
 
     def get_silk_layer(self, side="top", as_name=False):
         """Returns the silkscreen layer for the desired side of the PCB.
-        Arguments:
+
         :param side : Specifies either the "top" or "bottom" side of the PCB
         :param as_name : Specifies whether to return the layer as a
         string name or a Layer object reference
-        Return values:
-        :returns: layer : either a string name or Layer object reference
+
+        :returns: either a :obj:`str` name or :obj:`Layer` object reference
         """        
         return self._get_layer("is_silk", side, as_name)
 
     def get_docu_layer(self, side="top", as_name=False):
         """Returns the documentation layer for the desired side of the PCB.
-        Arguments:
+
         :param side : Specifies either the "top" or "bottom" side of the PCB
         :param as_name : Specifies whether to return the layer as a
         string name or a Layer object reference
-        Return values:
-        :returns: layer : either a string name or Layer object reference
+
+        :returns: either a :obj:`str` name or :obj:`Layer` object reference
         """        
         return self._get_layer("is_document", side, as_name)
 
     def get_paste_layer(self, side="top", as_name=False):
         """Returns the solder paste layer for the desired side of the PCB.
-        Arguments:
+
         :param side : Specifies either the "top" or "bottom" side of the PCB
         :param as_name : Specifies whether to return the layer as a
         string name or a Layer object reference
-        Return values:
-        :returns: layer : either a string name or Layer object reference
+
+        :returns: either a :obj:`str` name or :obj:`Layer` object reference
         """        
         return self._get_layer("is_paste", side, as_name)
 
     def get_mask_layer(self, side="top", as_name=False):
         """Returns the solder mask layer for the desired side of the PCB.
-        Arguments:
+
         :param side : Specifies either the "top" or "bottom" side of the PCB
         :param as_name : Specifies whether to return the layer as a
         string name or a Layer object reference
-        Return values:
-        :returns: layer : either a string name or Layer object reference
+
+        :returns: either a :obj:`str` name or :obj:`Layer` object reference
         """        
         return self._get_layer("is_mask", side, as_name)
 
     def fill_layer(self, layer, netname):
         """Fills a layer with copper poured region assigned to a net name.
-        Arguments:
+
         :param layer : string name of the layer (e.g. "GTL")
         :param netname : string name of net to assign to the fill
         """        
@@ -249,7 +249,7 @@ class Board:
 
     def add_to_mask_layers(self, obj):
         """Adds a polygon object to both the solder mask layers.
-        Arguments:
+
         :param obj : Polygon object to add 
         """        
         self.layers["GTS"].add(obj)
