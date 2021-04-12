@@ -13,11 +13,21 @@ if __name__ == "__main__":
     brd.add_part((32, 15), QFN64, side="top")
     rx = brd.add_part((15, 18), R0603, side="top")
     ry = brd.add_part((15, 12), R0603, side="top", val="4.7k")
-    brd.add_part((15, 25), R0603, side="top", val="200", rot=90).assign_pads("VCC", None).fanout()
-    C0603(brd.DC((35, 23)), "0.1 uF", side="top").assign_pads("GND", "VCC").fanout(["VCC", "GND"])
-    C0603(brd.DC((41, 22)), "0.1 uF", side="bottom").assign_pads("GND", None).fanout(["VCC", "GND"])
-    C0603(brd.DC((35, 7)).right(90), "0.1 uF", side="top").assign_pads("VCC", "GND").fanout("VDD GND")
-    C0603(brd.DC((42, 8)).right(90), "0.1 uF", side="bottom").assign_pads("VCC", None).fanout("VCC")
+    brd.add_part((15, 25), R0603, side="top", val="200", rot=90).assign_pads(
+        "VCC", None
+    ).fanout()
+    C0603(brd.DC((35, 23)), "0.1 uF", side="top").assign_pads("GND", "VCC").fanout(
+        ["VCC", "GND"]
+    )
+    C0603(brd.DC((41, 22)), "0.1 uF", side="bottom").assign_pads("GND", None).fanout(
+        ["VCC", "GND"]
+    )
+    C0603(brd.DC((35, 7)).right(90), "0.1 uF", side="top").assign_pads(
+        "VCC", "GND"
+    ).fanout("VDD GND")
+    C0603(brd.DC((42, 8)).right(90), "0.1 uF", side="bottom").assign_pads(
+        "VCC", None
+    ).fanout("VCC")
 
     for x in range(5):
         brd.add_part((5 + x * 3, 4), C0402, side="top")
@@ -46,4 +56,3 @@ if __name__ == "__main__":
     print(brd.layer_net_str())
 
     brd.save("%s" % (__file__[:-3]))
-

@@ -14,7 +14,14 @@ if __name__ == "__main__":
     for hole in holes:
         brd.add_hole(hole, 2.0)
     brd.add_text((10, 25), "Made with pcbflow", justify="left")
-    brd.add_text((10, 25), "Made with pcbflow", side="bottom", layer="GBL", keepout_box=True, justify="left")
+    brd.add_text(
+        (10, 25),
+        "Made with pcbflow",
+        side="bottom",
+        layer="GBL",
+        keepout_box=True,
+        justify="left",
+    )
     # Declare microcontroller
     mcu = Part(
         "DSP_Microchip_DSPIC33",
@@ -53,9 +60,9 @@ if __name__ == "__main__":
 
     # Assign part locations
     mcu.loc = (35, 15)
-    c1.loc = (25,15)
-    c2.loc = (45,15)
-    c3.loc = (37,6.5)
+    c1.loc = (25, 15)
+    c2.loc = (45, 15)
+    c3.loc = (37, 6.5)
     sides = ["top", "bottom", "top", "bottom"]
 
     # Instantiate SkiPart(PCBPart) instances

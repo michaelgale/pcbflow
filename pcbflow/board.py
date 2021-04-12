@@ -39,7 +39,7 @@ class Board:
         :param d: d direction angle (deg)
 
         :returns: :obj:`Draw` drawing context object
-        """        
+        """
         return Draw(self, xy, d)
 
     def assign(self, part):
@@ -48,7 +48,7 @@ class Board:
         :param part : A PCBPart derived object
 
         :returns: :obj:`str` reference designator assigned to part
-        """        
+        """
         pl = self.parts[part.family]
         pl.append(part)
         return part.family + str(len(pl))
@@ -62,7 +62,7 @@ class Board:
         :param ref : Reference designator string (e.g. "U1")
 
         :returns: :obj:`PCBPart` reference to PCBPart derived object with matching ref des
-        """        
+        """
         for k, v in self.parts.items():
             for p in v:
                 if p.id == ref:
@@ -77,7 +77,7 @@ class Board:
 
     def config_default_layers(self):
         """Resets all PCB layers and configures them to a default configuration.
-        """        
+        """
         self.layers = {}
         for k, v in DEFAULT_LAYERS.items():
             self.layers[k] = Layer(drc=self.drc, **v)
@@ -86,7 +86,7 @@ class Board:
 
     def reorder_layer_stack(self):
         """Reorders the layer stackup ensuring the correct ordering of copper layers.
-        """        
+        """
         z_order = 0
         cu_order = 1
         for layer in DEFAULT_LAYER_ORDER:
@@ -115,7 +115,7 @@ class Board:
         string names or a list of Layer object references.
 
         :returns: :obj:`list` of string names or Layer objects
-        """        
+        """
         layers = []
         for k in self.layers:
             if self.layers[k].is_copper:
@@ -129,7 +129,7 @@ class Board:
         """Adds one or more copper layers between the top and bottom copper layers.
 
         :param layer_count : Specifies how many copper layers to insert
-        """        
+        """
         for _ in range(layer_count):
             cu_layers = self.get_copper_layers()
             n_inner = len(cu_layers)
@@ -147,7 +147,7 @@ class Board:
         from the returned layer list
 
         :returns: :obj:`list` of string names or Layer objects
-        """        
+        """
         layers = []
         for k, v in self.layers.items():
             if side.title()[:3] in v.function and not v.is_silk and not v.is_document:
@@ -166,7 +166,7 @@ class Board:
         string names or a list of Layer object references.
 
         :returns: :obj:`list` of string names or Layer objects
-        """        
+        """
         layers = []
         layers.extend(self.get_copper_layers(as_names=as_names))
         layers.extend(
@@ -194,7 +194,7 @@ class Board:
         string name or a Layer object reference
 
         :returns: either a :obj:`str` name or :obj:`Layer` object reference
-        """        
+        """
         return self._get_layer("is_silk", side, as_name)
 
     def get_docu_layer(self, side="top", as_name=False):
@@ -205,7 +205,7 @@ class Board:
         string name or a Layer object reference
 
         :returns: either a :obj:`str` name or :obj:`Layer` object reference
-        """        
+        """
         return self._get_layer("is_document", side, as_name)
 
     def get_paste_layer(self, side="top", as_name=False):
@@ -216,7 +216,7 @@ class Board:
         string name or a Layer object reference
 
         :returns: either a :obj:`str` name or :obj:`Layer` object reference
-        """        
+        """
         return self._get_layer("is_paste", side, as_name)
 
     def get_mask_layer(self, side="top", as_name=False):
@@ -227,7 +227,7 @@ class Board:
         string name or a Layer object reference
 
         :returns: either a :obj:`str` name or :obj:`Layer` object reference
-        """        
+        """
         return self._get_layer("is_mask", side, as_name)
 
     def fill_layer(self, layer, netname):
@@ -235,7 +235,7 @@ class Board:
 
         :param layer : string name of the layer (e.g. "GTL")
         :param netname : string name of net to assign to the fill
-        """        
+        """
         if layer not in self.layers:
             print("Warning: Cannot fill layer %s; not in layer stack." % (layer))
             return
@@ -251,7 +251,7 @@ class Board:
         """Adds a polygon object to both the solder mask layers.
 
         :param obj : Polygon object to add 
-        """        
+        """
         self.layers["GTS"].add(obj)
         self.layers["GBS"].add(obj)
 
