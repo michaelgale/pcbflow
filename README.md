@@ -7,6 +7,11 @@
 ![python version](https://img.shields.io/static/v1?label=python&message=3.6%2B&color=blue&style=flat&logo=python)
 <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>  
 
+![https://travis-ci.org/michaelgale/pcbflow](https://travis-ci.com/michaelgale/pcbflow.svg?branch=main)
+[![codecov](https://codecov.io/gh/michaelgale/pcbflow/branch/main/graph/badge.svg)](https://codecov.io/gh/michaelgale/pcbflow)
+![https://github.com/michaelgale/pcbflow/issues](https://img.shields.io/github/issues/michaelgale/pcbflow.svg?style=flat)
+
+
 This repository contains a python based Printed Circuit Board (PCB) layout and design package based on [CuFlow](https://github.com/jamesbowman/cuflow) by James Bowman.
 
 This implementation is an experimental variation of CuFlow.  It attempts to modularize the components of CuFlow and extend/modify its functionality in some key areas:
