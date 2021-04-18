@@ -27,6 +27,7 @@ class Board:
         self.holes = defaultdict(list)
         self.npth = defaultdict(list)
         self.keepouts = []
+        self.layers = {}
 
         self.counters = defaultdict(lambda: 0)
         self.nets = []
@@ -80,7 +81,7 @@ class Board:
         """
         self.layers = {}
         for k, v in DEFAULT_LAYERS.items():
-            self.layers[k] = Layer(drc=self.drc, **v)
+            self.layers[k] = Layer(board=self, drc=self.drc, **v)
         self.layers["GML"] = OutlineLayer(desc="Mechanical", function="Profile,NP")
         self.reorder_layer_stack()
 
@@ -134,7 +135,7 @@ class Board:
             cu_layers = self.get_copper_layers()
             n_inner = len(cu_layers)
             new_layer = "GP%d" % (n_inner)
-            self.layers[new_layer] = Layer(is_copper=True, is_inner=True)
+            self.layers[new_layer] = Layer(board=self, is_copper=True, is_inner=True)
             self.reorder_layer_stack()
 
     def get_smd_pad_layers(self, side="top", as_names=False, ignore_paste=False):
@@ -338,6 +339,16 @@ class Board:
     def add_drill(self, xy, diameter):
         self.holes[diameter].append(xy)
 
+    def add_keepout(self, top_left, bottom_right, layer):
+        coords = [
+            top_left,
+            (bottom_right[0], top_left[1]),
+            bottom_right,
+            (top_left[0], bottom_right[1]),
+        ]
+        poly = sg.Polygon(coords)
+        self.layers[layer].keepouts.append(poly)
+
     def add_keepout_to_obj(self, obj, layer=None):
         bb = obj.bounds
         g = sg.box(bb[0], bb[1], bb[2], bb[3]).buffer(self.drc.clearance)
@@ -441,15 +452,21 @@ class Board:
     #
     #########################################################################
 
-    def _get_asset_path(self, basename, in_subdir=True):
+    def _get_asset_path(self, basename, in_subdir=True, subdir=None):
         if in_subdir:
-            newpath = os.path.normpath("./%s" % (basename))
+            if subdir is not None:
+                newpath = os.path.normpath("./%s" % (subdir))
+            else:
+                newpath = os.path.normpath("./%s" % (basename))
             if not os.path.isdir(newpath):
                 try:
                     os.mkdir(newpath)
                 except OSError:
                     print("Directory %s cannot be created" % (newpath))
-            assetpath = os.path.normpath("./%s" % (basename) + os.sep + basename)
+            if subdir is not None:
+                assetpath = os.path.normpath("./%s" % (subdir) + os.sep + basename)
+            else:
+                assetpath = os.path.normpath("./%s" % (basename) + os.sep + basename)
         else:
             assetpath = basename
         return assetpath
@@ -463,14 +480,15 @@ class Board:
         bom=True,
         centroids=True,
         povray=False,
+        subdir=None,
     ):
-        assetpath = self._get_asset_path(basename, in_subdir)
+        assetpath = self._get_asset_path(basename, in_subdir, subdir=subdir)
 
         if gerber:
-            self.save_gerbers(basename, in_subdir)
+            self.save_gerbers(basename, in_subdir, subdir=subdir)
 
         if pdf:
-            self.save_pdf(basename, in_subdir)
+            self.save_pdf(basename, in_subdir, subdir=subdir)
 
         if povray:
             substrate = self.substrate()
@@ -484,12 +502,12 @@ class Board:
             with open(assetpath + ".gts.pov", "wt") as f:
                 self.layers["GTS"].povray(f, mask=mask, invert=True)
         if bom:
-            self.save_bom(basename, in_subdir)
+            self.save_bom(basename, in_subdir, subdir=subdir)
         if centroids:
-            self.save_centroids(basename, in_subdir)
+            self.save_centroids(basename, in_subdir, subdir=subdir)
 
-    def save_gerbers(self, basename, in_subdir=True):
-        assetpath = self._get_asset_path(basename, in_subdir)
+    def save_gerbers(self, basename, in_subdir=True, subdir=None):
+        assetpath = self._get_asset_path(basename, in_subdir, subdir=subdir)
 
         for (name, layer) in self.layers.items():
             print("Rendering Gerber %s..." % (name))
@@ -508,14 +526,14 @@ class Board:
         with open(assetpath + "_NPTH.DRL", "wt") as f:
             excellon(f, self.npth, "NonPlated,%s,NPTH" % (ls))
 
-    def save_pdf(self, basename, in_subdir=True):
-        self.save_svg(basename, in_subdir=in_subdir, formats=["pdf"])
+    def save_pdf(self, basename, in_subdir=True, subdir=None):
+        self.save_svg(basename, in_subdir=in_subdir, formats=["pdf"], subdir=subdir)
 
-    def save_png(self, basename, in_subdir=True):
-        self.save_svg(basename, in_subdir=in_subdir, formats=["png"])
+    def save_png(self, basename, in_subdir=True, subdir=None):
+        self.save_svg(basename, in_subdir=in_subdir, formats=["png"], subdir=subdir)
 
-    def save_svg(self, basename, in_subdir=True, formats=["svg"]):
-        assetpath = self._get_asset_path(basename, in_subdir)
+    def save_svg(self, basename, in_subdir=True, formats=["svg"], subdir=None):
+        assetpath = self._get_asset_path(basename, in_subdir, subdir=subdir)
 
         from pcbflow.svgout import svg_write
 
@@ -540,8 +558,8 @@ class Board:
         print("Rendering preview_all.%s..." % (formats))
         svg_write(self, assetpath + "_preview_all.svg", style="all", formats=formats)
 
-    def save_centroids(self, basename, in_subdir=True):
-        fn = self._get_asset_path(basename, in_subdir)
+    def save_centroids(self, basename, in_subdir=True, subdir=None):
+        fn = self._get_asset_path(basename, in_subdir, subdir=subdir)
         with open(fn + "-centroids.csv", "wt") as f:
             cs = csv.writer(f)
             cs.writerow(
@@ -565,8 +583,8 @@ class Board:
                             [p.id, flt(x), flt(y), str(int(c.dir)), p.side, note]
                         )
 
-    def save_bom(self, basename, in_subdir=True):
-        fn = self._get_asset_path(basename, in_subdir)
+    def save_bom(self, basename, in_subdir=True, subdir=None):
+        fn = self._get_asset_path(basename, in_subdir, subdir=subdir)
         parts = defaultdict(list)
         rank = "UJKTRCMYB"
         for f, pp in self.parts.items():

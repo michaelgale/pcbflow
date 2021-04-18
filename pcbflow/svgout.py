@@ -14,6 +14,13 @@ from pcbflow import *
 
 SCALE_FACTOR = 4
 
+""" Styles consist of dictionary indexed lists.
+Each list specifies which layer of the PCB to render and its associated style attributes.
+Each list entry is a tuple of:
+  layer name, fill colour, line colour, opacity
+Fill/line colours are SVG compliant colour words.
+Opacity ranges from 0.0 (transparent) to 1.0 (opaque)
+"""
 SVG_STYLE = {
     "top": [
         ("GTL", "indianred", "indianred", 1.0),

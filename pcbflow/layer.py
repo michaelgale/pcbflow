@@ -96,7 +96,7 @@ DEFAULT_LAYERS = {
 
 
 class Layer:
-    def __init__(self, **kwargs):
+    def __init__(self, board=None, **kwargs):
         self.polys = []
         self.named_polys = []
         self.fill_poly = None
@@ -114,6 +114,7 @@ class Layer:
         self.connected = []
         self.keepouts = []
         self.preview_poly = None
+        self.board = board
         if "drc" not in kwargs:
             self.drc = DRC()
         for k, v in kwargs.items():
@@ -160,6 +161,9 @@ class Layer:
                     self.drc.clearance
                 )
                 ncp = so.unary_union(named_polys).difference(diff_exc)
+                if self.board is not None:
+                    ko = so.unary_union([*self.keepouts, *self.board.keepouts])
+                    ncp = ncp.difference(ko)
                 self.preview_poly = so.unary_union([*all_polys, ncp])
             else:
                 self.preview_poly = so.unary_union([*all_polys, *named_polys])

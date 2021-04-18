@@ -35,6 +35,16 @@ def pretty_parts(nms):
 
 
 class PCBPart:
+    """PCBPart base class
+    All parts physically rendered on the PCB must inherit from this class.
+    The __init__ method is somewhate complicated by having to anticipate
+    the variety of scenarios from which it is inherited--i.e. missing or
+    overlapping attributes, setting defaults, etc.
+    All classes that derive from PCBPart must make a call to super().__init__
+    so that it can be placed on the PCB (with its own place method) and 
+    ensure its ref des, family, height/width bounds are configured properly.
+    """
+
     def __init__(self, dc, val=None, source=None, side="top", **kwargs):
         self.mfr = ""
         if "family" not in self.__dict__:

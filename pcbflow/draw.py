@@ -10,12 +10,18 @@ import shapely.ops as so
 
 from pcbflow import *
 
+SINGLE_TOKENS = ["i", "o"]
+PARAM_TOKENS = ["f", "r", "l", ".", ">"]
+
 
 def token_splitter(tokens):
+    """Splits a list of tokens safely so that command tokens are always whitespace
+    separated from associated parameter values. e.g. "R90" is equivalent to "R 90"
+    """
     exp_tokens = []
     tokens = tokens.split()
     for t in tokens:
-        if len(t) > 1 and t[0].lower() in ["f", "r", "l", ".", ">"]:
+        if len(t) > 1 and t[0].lower() in PARAM_TOKENS:
             token = t[0].lower()
             other = t[1:]
             exp_tokens.append(token)
@@ -26,6 +32,9 @@ def token_splitter(tokens):
 
 
 class Turtle:
+    """Turtle graphics command parser base class
+    """
+
     def __repr__(self):
         return "<at (%.3f, %.3f) facing %.3f>" % (self.xy + (self.dir,))
 
@@ -34,8 +43,6 @@ class Turtle:
 
     def turtle(self, s, layer="GTL"):
         tokens = token_splitter(s)
-        cmds1 = {"i", "o"}
-        cmds2 = {"f", "l", "r", ".", ">"}
         i = 0
         while i < len(tokens):
             t = tokens[i]
@@ -55,7 +62,7 @@ class Turtle:
             elif t == ">":
                 self.meet_at(tokens[i + 1])
 
-            if t in cmds1:
+            if t in SINGLE_TOKENS:
                 i += 1
             else:
                 i += 2
@@ -72,6 +79,9 @@ class Turtle:
 
 
 class Draw(Turtle):
+    """Drawing context class
+    """
+
     def __init__(self, board, xy, dir=0, name=None):
         self.board = board
         self.xy = xy
