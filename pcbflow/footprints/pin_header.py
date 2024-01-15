@@ -85,7 +85,7 @@ class DIP(PTH):
 
     def escape(self):
         ii = cu.inches(0.1) / 2
-        q = math.sqrt((ii ** 2) + (ii ** 2))
+        q = math.sqrt((ii**2) + (ii**2))
         for p in self.pads[:4]:
             p.w("l 45").forward(q).left(45).forward(1)
         for p in self.pads[4:]:

@@ -13,4 +13,4 @@ if __name__ == "__main__":
     brd.add_named_rect((8, 15), (35, 3), "GBL", "VCC")
     brd.fill_layer("GTL", "VCC")
     brd.fill_layer("GBL", "GND")
-    brd.save("%s" % (__file__[:-3]))
+    brd.save("%s" % (os.path.basename(__file__)[:-3]))

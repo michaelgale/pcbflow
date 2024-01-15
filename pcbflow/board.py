@@ -77,8 +77,7 @@ class Board:
     #########################################################################
 
     def config_default_layers(self):
-        """Resets all PCB layers and configures them to a default configuration.
-        """
+        """Resets all PCB layers and configures them to a default configuration."""
         self.layers = {}
         for k, v in DEFAULT_LAYERS.items():
             self.layers[k] = Layer(board=self, drc=self.drc, **v)
@@ -86,8 +85,7 @@ class Board:
         self.reorder_layer_stack()
 
     def reorder_layer_stack(self):
-        """Reorders the layer stackup ensuring the correct ordering of copper layers.
-        """
+        """Reorders the layer stackup ensuring the correct ordering of copper layers."""
         z_order = 0
         cu_order = 1
         for layer in DEFAULT_LAYER_ORDER:
@@ -251,7 +249,7 @@ class Board:
     def add_to_mask_layers(self, obj):
         """Adds a polygon object to both the solder mask layers.
 
-        :param obj : Polygon object to add 
+        :param obj : Polygon object to add
         """
         self.layers["GTS"].add(obj)
         self.layers["GBS"].add(obj)
@@ -509,7 +507,7 @@ class Board:
     def save_gerbers(self, basename, in_subdir=True, subdir=None):
         assetpath = self._get_asset_path(basename, in_subdir, subdir=subdir)
 
-        for (name, layer) in self.layers.items():
+        for name, layer in self.layers.items():
             print("Rendering Gerber %s..." % (name))
             if name == "GTD":
                 fn = assetpath + "_top.GBR"
@@ -702,7 +700,7 @@ class Board:
     def enriverPair(self, z):
         c = self.drc.channel()
         y = 0.5 * (z[0].distance(z[1]) - c)
-        h = math.sqrt(2 * (y ** 2))
+        h = math.sqrt(2 * (y**2))
 
         z[0].w("o f .2 l 45 f {0} r 45 f .1".format(h))
         z[1].w("o f .2 r 45 f {0} l 45 f .1".format(h))

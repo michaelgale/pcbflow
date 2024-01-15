@@ -1,4 +1,5 @@
 import math
+import optparse
 import shapely.geometry as sg
 
 from pcbflow import *
@@ -55,4 +56,4 @@ if __name__ == "__main__":
     print(brd.parts_str())
     print(brd.layer_net_str())
 
-    brd.save("%s" % (__file__[:-3]))
+    brd.save("%s" % (os.path.basename(__file__)[:-3]))

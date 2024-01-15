@@ -32,8 +32,7 @@ def token_splitter(tokens):
 
 
 class Turtle:
-    """Turtle graphics command parser base class
-    """
+    """Turtle graphics command parser base class"""
 
     def __repr__(self):
         return "<at (%.3f, %.3f) facing %.3f>" % (self.xy + (self.dir,))
@@ -79,8 +78,7 @@ class Turtle:
 
 
 class Draw(Turtle):
-    """Drawing context class
-    """
+    """Drawing context class"""
 
     def __init__(self, board, xy, dir=0, name=None):
         self.board = board
@@ -309,14 +307,18 @@ class Draw(Turtle):
     def poly(self):
         return sg.Polygon(self.path)
 
-    def smd_pad(self, layer=None):
+    def smd_pad(self, layer=None, no_mask=False):
         if layer is not None:
             self.layer = layer
         g = self.poly()
         if self.layer == "GTL":
             layers = self.board.get_smd_pad_layers(side="top")
+            if no_mask:
+                layers = [self.board.layers["GTL"]]
         elif self.layer == "GBL":
             layers = self.board.get_smd_pad_layers(side="bottom")
+            if no_mask:
+                layers = [self.board.layers["GBL"]]
         else:
             assert False, "Attempt to create pad in layer " + self.layer
         for lyr in layers:

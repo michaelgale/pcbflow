@@ -120,7 +120,12 @@ class KiCadPart(PCBPart):
                 xyc = self.center.xy
                 xy = (xyc[0] + label["xy"][0], xyc[1] + label["xy"][1])
                 self.board.add_text(
-                    xy, self.id, angle=0, scale=1.0, side=self.side, justify="center",
+                    xy,
+                    self.id,
+                    angle=0,
+                    scale=1.0,
+                    side=self.side,
+                    justify="center",
                 )
 
     def _map_layers(self, layers):

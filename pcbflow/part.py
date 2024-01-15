@@ -41,7 +41,7 @@ class PCBPart:
     the variety of scenarios from which it is inherited--i.e. missing or
     overlapping attributes, setting defaults, etc.
     All classes that derive from PCBPart must make a call to super().__init__
-    so that it can be placed on the PCB (with its own place method) and 
+    so that it can be placed on the PCB (with its own place method) and
     ensure its ref des, family, height/width bounds are configured properly.
     """
 

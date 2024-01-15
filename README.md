@@ -27,6 +27,13 @@ This implementation is an experimental variation of CuFlow.  It attempts to modu
 
 This implementation is alpha and not fully documented.
 
+## Requirements
+
+Since the initial release of `pcbflow`, some changes have been made to adapt with newer versions of python and library dependancies.  In particular:
+
+- since python 3.9+ the `__file__` dunder attribute broke the scripts in the `examples` folder.  All references to `__file__` have been replaced with `os.path.basename(__file__)[:-3]`
+- the initial versions of `pcbflow` used `shapely` v.1.6+. However `shapely` has changed the way geometries are iterated in v.2.0.0+; therefore  `pcbflow` has been changed to support `shapley` versions 2.0.0+ ONLY.  Check your version with `pip list` and verify `shapley`` is v.2.0.0+
+
 ## Installation
 
 The **pcbflow** package can be installed directly from the source code:
@@ -391,7 +398,7 @@ if __name__ == "__main__":
     brd.fill_layer("GP3", "GND")
 
     # Save the rendered PCB to asset files 
-    brd.save("%s" % (__file__[:-3]))
+    brd.save("%s" % (os.path.basename(__file__)[:-3]))
 ```
 
 | Top | Top Document |

@@ -118,7 +118,7 @@ def max_bounds(bounds, min_bound=5):
 
 
 def full_path(file):
-    """ Returns the fully expanded path of a file"""
+    """Returns the fully expanded path of a file"""
     if "~" in str(file):
         return os.path.expanduser(file)
     return os.path.expanduser(os.path.abspath(file))

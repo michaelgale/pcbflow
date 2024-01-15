@@ -37,8 +37,8 @@ logger = logging.getLogger(__name__)
 
 class SexpValueDict(OrderedDict):
     """Dictionary for holding named and un-named values
-        The order of appearance may be significant in certain S-Expression,
-        which is why we use ``OrderedDict`` here.
+    The order of appearance may be significant in certain S-Expression,
+    which is why we use ``OrderedDict`` here.
     """
 
     __slots__ = "_idx"
@@ -49,21 +49,21 @@ class SexpValueDict(OrderedDict):
 
     def add(self, sexp, action=3):
         """Add an S-Expression value
-            
-            Args:
-                sexp (`Sexp`): S-Expression value to be added
-                action (int): action to take when an storing an S-Expression
-                              Acceptable values are,
-                              
-                    * 0: overwrite if there one with the same key
-                    * 1: throw exception if there one with the same key
-                    * 2: always use `SexpList`
-                    * 3: dynamic change to `SexpList` if there is more than 
-                         one with the same key
-            If ``sexp._key`` is None, than an internal index will be assigned
-            as the key indicating that this S-Expression is un-named, and is
-            keyed by its position, kinda like positional based command line
-            options
+
+        Args:
+            sexp (`Sexp`): S-Expression value to be added
+            action (int): action to take when an storing an S-Expression
+                          Acceptable values are,
+
+                * 0: overwrite if there one with the same key
+                * 1: throw exception if there one with the same key
+                * 2: always use `SexpList`
+                * 3: dynamic change to `SexpList` if there is more than
+                     one with the same key
+        If ``sexp._key`` is None, than an internal index will be assigned
+        as the key indicating that this S-Expression is un-named, and is
+        keyed by its position, kinda like positional based command line
+        options
         """
         if not isinstance(sexp, Sexp):
             raise TypeError("expects type Sexp")
@@ -100,15 +100,15 @@ class SexpValueDict(OrderedDict):
 
 class Sexp(object):
     """Generic class to represent a S-Expression
-        Attributes:
-            _key (string|int): hold the key of this S-Expression
-            _value: various types for present the value of this expression
-        This class provides the basic accessing interface for sub-keys, and
-        sub-values of an expression. It also has the `_export()` function to
-        export back the plain S-Expression text form
-        Subclasses are advised to use only attributes start with '_'.
-        Non-underscored attributes are reserved for accessing named values (i.e.
-        sub S-Expressions)
+    Attributes:
+        _key (string|int): hold the key of this S-Expression
+        _value: various types for present the value of this expression
+    This class provides the basic accessing interface for sub-keys, and
+    sub-values of an expression. It also has the `_export()` function to
+    export back the plain S-Expression text form
+    Subclasses are advised to use only attributes start with '_'.
+    Non-underscored attributes are reserved for accessing named values (i.e.
+    sub S-Expressions)
     """
 
     __slots__ = "_key", "_value", "_line"
@@ -183,10 +183,10 @@ class Sexp(object):
 
     def _export(self, out, prefix="", indent="  "):
         """Export self to an S-epression and write to output stream
-            Args: 
-                out: output stream, only needs to implement ``out.write(string)``
-                prefix(string): prefixing spaces for output formating 
-                indent(string): incremental prefix for sub levels
+        Args:
+            out: output stream, only needs to implement ``out.write(string)``
+            prefix(string): prefixing spaces for output formating
+            indent(string): incremental prefix for sub levels
         """
 
         if self._value is None:
@@ -226,8 +226,8 @@ class Sexp(object):
 
     def _exportValue(self, out, value, prefix, indent):
         """Called by `_export()` to export each indivdual value
-            It tries ``value._export()`` before fallback to str(value) Subclass
-            can override this method to customize the behavior
+        It tries ``value._export()`` before fallback to str(value) Subclass
+        can override this method to customize the behavior
         """
         p = getattr(value, "_export", None)
         if p is not None:
@@ -237,21 +237,21 @@ class Sexp(object):
 
     def _addDefaults(self, defs):
         """Add default values
-            
-            Arg:
-                defs (string|Sexp|tuple)
-            Retruns: the value with the first key in ``defs``.
-            ``defs`` maybe a string or a tuple of strings. The first string
-            specifies the key of the default value. The following strings
-            defines the keys of the sub values. The following strings can be
-            tuples, too, for recursive setting of the default value. The string
-            specifies that if the corresponding key is missing or has only one
-            insance, it will be converted to a ``SexpList`` of either zero or
-            one child. This makes it easy to traverse the object model without
-            constant need of sanity checking.
-            Each element inside ``defs`` can instead be a Sexp, which
-            means that if the corresponding key is missing, the given
-            Sexp will be added.
+
+        Arg:
+            defs (string|Sexp|tuple)
+        Retruns: the value with the first key in ``defs``.
+        ``defs`` maybe a string or a tuple of strings. The first string
+        specifies the key of the default value. The following strings
+        defines the keys of the sub values. The following strings can be
+        tuples, too, for recursive setting of the default value. The string
+        specifies that if the corresponding key is missing or has only one
+        insance, it will be converted to a ``SexpList`` of either zero or
+        one child. This makes it easy to traverse the object model without
+        constant need of sanity checking.
+        Each element inside ``defs`` can instead be a Sexp, which
+        means that if the corresponding key is missing, the given
+        Sexp will be added.
         """
         if isinstance(defs, (list, tuple)):
             if not len(defs):
@@ -290,8 +290,8 @@ class Sexp(object):
 
 class SexpList(Sexp):
     """Used to contain a list of expression with the same key
-        When exporting, it will not export its own key, but export all of its
-        children under at the current level
+    When exporting, it will not export its own key, but export all of its
+    children under at the current level
     """
 
     __slots__ = ()
@@ -338,50 +338,50 @@ class SexpList(Sexp):
 
 class SexpParser(Sexp):
     """Basic parser class
-        The parser expects input data to be a python ``list`` representation of
-        the S-expression, i.e. a recurisve list of form ::
-            [ <line number>, <key>, <value>... ]
-        where it can have zero or more ``<value>`` of either signleton type or
-        another ``list`` of the same format.
-        
-        The parser uses the constructor to dispatch lower level parsers.
+    The parser expects input data to be a python ``list`` representation of
+    the S-expression, i.e. a recurisve list of form ::
+        [ <line number>, <key>, <value>... ]
+    where it can have zero or more ``<value>`` of either signleton type or
+    another ``list`` of the same format.
+
+    The parser uses the constructor to dispatch lower level parsers.
     """
 
     __slots__ = "_err"
 
     def __init__(self, data):
         """Constructor that dispatches parsing to lower level parsers
-            Args: 
-                data (string|list): if data is a list, it holds the S-Expression
-                                    to be parsed with the following form ::
-                    [ <line number>, <key>, <value>...]
-                where each ``<value`` may be another list of the same form. 
-                
-            If `data` is a string, then it is a value without key.
-            ``self._key`` will be set ``None``, and will be assigned an integer
-            index after being added to parent's value dictionary of type
-            `SexpValueDict`
-            The constructor will dispatch keyword parsing to lower level
-            parsers grouped by ``self`` here. User impelements semantic check
-            by subclassing this class, and provides, for each sub-keys, a
-            sub-parser as callable attributes. The search is done in the
-            following order,
-            * Sub-parsers named as ``_pos<index>`` are called to handle
-              positional based expression, ``<index>`` is the occurance index of
-              this sub-expression inside the parent expression
-            * Sub-parses named as ``_parse1_<subkey>`` demand that the
-              corresponding key must not appear more than once
-            * Sub-parsers named as ``'_parse_<subkey>`` causes the result to be
-              always store into a list (i.e. type ``SexpList``)
-            * ``<key>`` value appread in an attribute ``_default_bools`` are
-              parsed using `SexpDefaultTrue`. Any missing expression with keys in
-              ``_default_bools`` will be append as a ``False`` value
-            * If no subparser is found, `self._parse()` as fallback
-            Lower level parser can bypass result storage by not returning
-            anything, and perform its own storage
-            After parsing is done, it will insert default bool (in
-            ``_default_bools``) values and default values (in ``_defaults``)
-            values if they are missing.
+        Args:
+            data (string|list): if data is a list, it holds the S-Expression
+                                to be parsed with the following form ::
+                [ <line number>, <key>, <value>...]
+            where each ``<value`` may be another list of the same form.
+
+        If `data` is a string, then it is a value without key.
+        ``self._key`` will be set ``None``, and will be assigned an integer
+        index after being added to parent's value dictionary of type
+        `SexpValueDict`
+        The constructor will dispatch keyword parsing to lower level
+        parsers grouped by ``self`` here. User impelements semantic check
+        by subclassing this class, and provides, for each sub-keys, a
+        sub-parser as callable attributes. The search is done in the
+        following order,
+        * Sub-parsers named as ``_pos<index>`` are called to handle
+          positional based expression, ``<index>`` is the occurance index of
+          this sub-expression inside the parent expression
+        * Sub-parses named as ``_parse1_<subkey>`` demand that the
+          corresponding key must not appear more than once
+        * Sub-parsers named as ``'_parse_<subkey>`` causes the result to be
+          always store into a list (i.e. type ``SexpList``)
+        * ``<key>`` value appread in an attribute ``_default_bools`` are
+          parsed using `SexpDefaultTrue`. Any missing expression with keys in
+          ``_default_bools`` will be append as a ``False`` value
+        * If no subparser is found, `self._parse()` as fallback
+        Lower level parser can bypass result storage by not returning
+        anything, and perform its own storage
+        After parsing is done, it will insert default bool (in
+        ``_default_bools``) values and default values (in ``_defaults``)
+        values if they are missing.
         """
 
         super(SexpParser, self).__init__(data[1], None, data[0])
@@ -492,30 +492,30 @@ class SexpParser(Sexp):
 
     def _addValue(self, sexp, action):
         """Called by `__init__()` to add each individual parsed value
-            Args:
-                sexp (`Sexp`): parsed result
-                action: See `SexpValueDict.add()` for possible values
+        Args:
+            sexp (`Sexp`): parsed result
+            action: See `SexpValueDict.add()` for possible values
         """
         self._value.add(sexp, action)
 
     def _parse(self, idx, value):
         """Called by `__init__()` as a fallback
-            Args:
-                idx (int): index position of this value in its parent
-                           expression
-                value: the value to parse
+        Args:
+            idx (int): index position of this value in its parent
+                       expression
+            value: the value to parse
         """
         return parseDefault(self, value)
 
 
 class SexpBool(Sexp):
     """Parser for parsing boolean type value
-        The constructor treat the following string value as ``True`` :: 
-            'yes', 'Yes', 'true', 'True'
-        and ``False`` ::
-            'no', 'No', 'false', 'False'
-        The actual text representation is stored in ``_value``, and boolean
-        value is computed at runtime by checking agains the ``_yes_values``
+    The constructor treat the following string value as ``True`` ::
+        'yes', 'Yes', 'true', 'True'
+    and ``False`` ::
+        'no', 'No', 'false', 'False'
+    The actual text representation is stored in ``_value``, and boolean
+    value is computed at runtime by checking agains the ``_yes_values``
     """
 
     __slots__ = ()
@@ -571,16 +571,16 @@ class SexpBool(Sexp):
 
 class SexpDefaultTrue(Sexp):
     """Converts an un-named value to a named value of boolean value ``True``
-        
-        For an expression such as ``drill(oval 1 2)``, `oval` is normally
-        treated as an un-named string value. However, some semantics may
-        interpret it as a boolean value of ``True`` with key 'oval'. And
-        missing such value will indicate as ``False``. 
-        
-        This class can be used to implement such semantics. Simply add a
-        keyword into a class variable called `_default_bool` of your subclass
-        of `SexpParser`. Any value with the keyword will behavior as described
-        above.
+
+    For an expression such as ``drill(oval 1 2)``, `oval` is normally
+    treated as an un-named string value. However, some semantics may
+    interpret it as a boolean value of ``True`` with key 'oval'. And
+    missing such value will indicate as ``False``.
+
+    This class can be used to implement such semantics. Simply add a
+    keyword into a class variable called `_default_bool` of your subclass
+    of `SexpParser`. Any value with the keyword will behavior as described
+    above.
     """
 
     __slots__ = ()
@@ -616,13 +616,13 @@ class SexpDefaultTrue(Sexp):
 
 def parseDefault(obj, sexp):
     """Default handling of value parsing
-        Arg:
-            sexp: the value for parsing
-        Returns an Sexp object for `SexpParser` to store the value
-        This function will try to guess the value format by trying type
-        conversion of ``int, float and SexpBool. It will use `SexpParser` to
-        parse any composite expressions, i.e. if there is any ``list`` type
-        element inside ``sexp``
+    Arg:
+        sexp: the value for parsing
+    Returns an Sexp object for `SexpParser` to store the value
+    This function will try to guess the value format by trying type
+    conversion of ``int, float and SexpBool. It will use `SexpParser` to
+    parse any composite expressions, i.e. if there is any ``list`` type
+    element inside ``sexp``
     """
 
     if isinstance(sexp, string_types):
@@ -723,12 +723,12 @@ def parseFloat4(obj, sexp):
 
 def parseSexp(sexp):
     """Parses S-expressions and return a ``list`` represention
-        
-        Code borrowed from: http://rosettacode.org/wiki/S-Expressions, with
-        the following modifications,
-        * Do not parse numbers
-        * Do not strip quotes (for easy export back to S-expression)
-        * Added line number information for easy debugging
+
+    Code borrowed from: http://rosettacode.org/wiki/S-Expressions, with
+    the following modifications,
+    * Do not parse numbers
+    * Do not strip quotes (for easy export back to S-expression)
+    * Added line number information for easy debugging
     """
 
     if not hasattr(parseSexp, "regex"):

@@ -34,7 +34,7 @@ class Route(Turtle):
         s = math.sin(a)
         c = math.cos(a)
         (x0, y0) = self.tt[0].xy
-        for (i, t) in enumerate(self.tt):
+        for i, t in enumerate(self.tt):
             x = t.xy[0] - x0
             y = t.xy[1] - y0
             nx = x * c - y * s
@@ -48,7 +48,7 @@ class Route(Turtle):
         c = math.cos(a)
         tt = self.tt[::-1]
         (x0, y0) = tt[0].xy
-        for (i, t) in enumerate(tt):
+        for i, t in enumerate(tt):
             x = t.xy[0] - x0
             y = t.xy[1] - y0
             nx = x * c - y * s
@@ -157,7 +157,7 @@ class Route(Turtle):
         d = self.tt[0].distance(other.tt[0])
         c = self.board.drc.channel()
         r = c * (len(self.tt) - 1)
-        l = math.sqrt(d ** 2 - r ** 2)
+        l = math.sqrt(d**2 - r**2)
         dir_d = self.tt[0].direction(other.tt[0])
         a = math.acos(l / d)
         self.right(180 * (dir_d + a) / math.pi)

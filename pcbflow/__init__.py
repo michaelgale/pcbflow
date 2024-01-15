@@ -4,7 +4,7 @@ import os
 
 # fmt: off
 __project__ = 'pcbflow'
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 # fmt: on
 
 VERSION = __project__ + "-" + __version__

@@ -144,7 +144,7 @@ class Layer:
         self.named_polys.append((name, obj.simplify(0.001, preserve_topology=False)))
         self.preview_poly = None
 
-    def preview(self):
+    def preview(self, as_collection=False):
         if self.preview_poly is None:
             named_polys = [p for (_, p) in self.named_polys]
             all_polys = [p for (_, p) in self.polys]
@@ -169,7 +169,11 @@ class Layer:
                 self.preview_poly = so.unary_union([*all_polys, *named_polys])
         if self.fill_poly is not None:
             self.preview_poly = so.unary_union([self.preview_poly, self.fill_poly])
-        return self.preview_poly
+        if isinstance(self.preview_poly, sg.Polygon):
+            return self.preview_poly
+        if as_collection:
+            return self.preview_poly
+        return self.preview_poly.geoms
 
     def paint(self, bg, include, clearance):
         # Return the intersection of bg with the current polylist
@@ -189,7 +193,7 @@ class Layer:
 
         def renderpoly(g, po):
             if type(po) == sg.MultiPolygon:
-                [renderpoly(g, p) for p in po]
+                [renderpoly(g, p) for p in po.geoms]
                 return
             # Subdivide a poly if it has holes
             if len(po.interiors) == 0:
@@ -219,7 +223,7 @@ class Layer:
 
         def renderpoly(po):
             if type(po) == sg.MultiPolygon:
-                [renderpoly(p) for p in po]
+                [renderpoly(p) for p in po.geoms]
                 return
             allc = [po.exterior.coords] + [c.coords for c in po.interiors]
             total = sum([len(c) for c in allc])

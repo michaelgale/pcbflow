@@ -32,7 +32,7 @@ class Gerber:
 
     def points(self, pp):
         d = "D02"
-        for (x, y) in pp:
+        for x, y in pp:
             self.f.write("X" + self.number(x) + "Y" + self.number(y) + d + "*\n")
             d = "D01"
 

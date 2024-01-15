@@ -79,8 +79,7 @@ if __name__ == "__main__":
     brd.fill_layer("GBL", "GND")
     brd.fill_layer("GP3", "GND")
 
-    # brd.save("%s" % (__file__[:-3]))
-    brd.save("%s" % (__file__[:-3]))
+    brd.save("%s" % (os.path.basename(__file__)[:-3]))
 
 """
 convert -density 1200 skidl_test_preview_bot.pdf -resize 800x600 preview_bot.png

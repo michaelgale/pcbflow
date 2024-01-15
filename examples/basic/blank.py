@@ -1,3 +1,4 @@
+import os
 import math
 import shapely.geometry as sg
 
@@ -9,4 +10,4 @@ if __name__ == "__main__":
     brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GBL", "GND")
-    brd.save("%s" % (__file__[:-3]))
+    brd.save("%s" % (os.path.basename(__file__)[:-3]))

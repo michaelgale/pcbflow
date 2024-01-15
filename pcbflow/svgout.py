@@ -98,7 +98,7 @@ def svg_write(board, filename, style="top", formats=["svg"]):
         dwg.add(dwg.polyline(better_coords(l.coords), **args))
 
     def renderlayer(layer, fill_colour="black", line_colour="black", fill_opacity=1.0):
-        gto = board.layers[layer].preview()
+        gto = board.layers[layer].preview(as_collection=True)
         gto = sa.scale(gto, SCALE_FACTOR, -SCALE_FACTOR, origin=(0, 0))
         gto = sa.translate(gto, -x0, -y0)
 
@@ -112,7 +112,7 @@ def svg_write(board, filename, style="top", formats=["svg"]):
 
         def renderpoly(po):
             if type(po) == sg.MultiPolygon:
-                [renderpoly(p) for p in po]
+                [renderpoly(p) for p in po.geoms]
                 return
 
             if len(po.interiors) == 0:
@@ -131,7 +131,7 @@ def svg_write(board, filename, style="top", formats=["svg"]):
         if isinstance(gto, sg.Polygon):
             renderpoly(gto)
         else:
-            [renderpoly(po) for po in gto]
+            [renderpoly(po) for po in gto.geoms]
         args = {
             "stroke": line_colour,
             "fill_opacity": 0.0,
@@ -139,7 +139,7 @@ def svg_write(board, filename, style="top", formats=["svg"]):
             "stroke_width": 0.1,
         }
         if not isinstance(gto, sg.Polygon):
-            for po in gto:
+            for po in gto.geoms:
                 li = [po.exterior] + list(po.interiors)
                 for l in li:
                     dwg.add(dwg.polyline(better_coords(l.coords), **args))

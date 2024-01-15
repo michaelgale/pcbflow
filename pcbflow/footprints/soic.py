@@ -14,7 +14,6 @@ class SOIC(PCBPart):
         super().__init__(*args, **kwargs)
 
     def place(self, dc):
-
         self.chamfered(dc, self.A, self.B)
         for _ in range(2):
             dc.push()
