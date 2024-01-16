@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
@@ -23,8 +25,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest
+        pip install pytest skidl
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python setup.py install
     - name: Test with pytest
       run: |
         pytest
@@ -32,6 +35,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
@@ -51,6 +56,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
@@ -59,10 +66,16 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Run basic examples
-        run: |
+        python setup.py install
+        - name: Run basic blank
+          run: |
+            python examples/basic/blank.py
+    - name: Run basic blank
+      run: |
         python examples/basic/blank.py
+    - name: Run basic holes
+      run: |
         python examples/basic/holes.py
-      - name: Run sample
-        run: |
+    - name: Run sample
+      run: |
         python examples/sample/sample.py
