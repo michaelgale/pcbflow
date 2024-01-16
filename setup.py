@@ -41,16 +41,15 @@ def check_python_version():
 
     # get the version number, remove any trailing text, split into numerical values.
     # then compare these sequences of numbers to one another
-    version = [int(v) for v in sys.version.split(' ')[0].split(".")]
-    min_version = [int(v) for v in MINIMUM_PYTHON_VERSION.split(' ')[0].split(".")]
-    for a,b in zip(version, min_version):
-        if a>b:
+    version = [int(v) for v in sys.version.split(" ")[0].split(".")]
+    min_version = [int(v) for v in MINIMUM_PYTHON_VERSION.split(" ")[0].split(".")]
+    for a, b in zip(version, min_version):
+        if a > b:
             break
-        if a<b:
-           sys.exit("Python {0}+ is required.".format(MINIMUM_PYTHON_VERSION))
+        if a < b:
+            sys.exit("Python {0}+ is required.".format(MINIMUM_PYTHON_VERSION))
 
-
-    #if sys.version < MINIMUM_PYTHON_VERSION:
+    # if sys.version < MINIMUM_PYTHON_VERSION:
 
 
 def read_package_variable(key, filename="__init__.py"):

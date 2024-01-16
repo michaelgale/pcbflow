@@ -14,7 +14,7 @@ def char2val(c):  # data is stored as signed bytes relative to ASCII R
 
 
 def hersheyparse(dat):
-    """ reads a line of Hershey font text """
+    """reads a line of Hershey font text"""
 
     lines = []
 
@@ -22,7 +22,6 @@ def hersheyparse(dat):
     # starting at col 11
 
     for s in dat[10:].split(" R"):
-
         # each line is a list of pairs of coordinates
         # NB: origin is at centre(ish) of character
         #     Y coordinates **increase** downwards
@@ -71,11 +70,32 @@ codes = (
         720,
     ]
     + list(range(700, 710))
-    + [712, 713, 2241, 726, 2242, 715, 2273,]
+    + [
+        712,
+        713,
+        2241,
+        726,
+        2242,
+        715,
+        2273,
+    ]
     + list(range(501, 527))
-    + [2223, 804, 2224, 2262, 999, 730,]
+    + [
+        2223,
+        804,
+        2224,
+        2262,
+        999,
+        730,
+    ]
     + list(range(601, 627))
-    + [2225, 723, 2226, 2246, 718,]
+    + [
+        2225,
+        723,
+        2226,
+        2246,
+        718,
+    ]
 )
 
 
