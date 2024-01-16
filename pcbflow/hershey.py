@@ -46,7 +46,7 @@ def hersheyparse(dat):
 
 def plline(l):
     (ucode, h, _) = [int(i, 0) for i in l[:-1].split(",")]
-    return (unichr(ucode), h)
+    return (chr(ucode), h)
 
 
 # From http://paulbourke.net/dataformats/hershey/romans.hmp
