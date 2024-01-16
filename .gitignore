@@ -1,3 +1,6 @@
+# test files
+skidl_test.*
+
 # python intermediate files
 *.py[cod]
 
