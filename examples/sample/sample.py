@@ -38,7 +38,7 @@ if __name__ == "__main__":
     brd.add_part((35, 5), SOIC8, side="bottom")
     usb_con = EaglePart(
         brd.DC((50, 15)).right(180),
-        libraryfile="sparkfun.lbr",
+        libraryfile="scripts/sparkfun.lbr",
         partname="USB-B-SMT",
         side="top",
     )
