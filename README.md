@@ -45,7 +45,7 @@ The **pcbflow** package can be installed directly from the source code:
 ```bash
   $ git clone https://github.com/michaelgale/pcbflow.git
   $ cd pcbflow
-  $ python setup.py install
+  $ pip install .
 ```
 
 ## Basic Usage
