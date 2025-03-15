@@ -5,7 +5,7 @@
 # pcbflow - Python PCB layout and design (based on CuFlow)
 
 ![python version](https://img.shields.io/static/v1?label=python&message=3.9%2B&color=blue&style=flat&logo=python)
-<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>  
+<a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 
 ![https://travis-ci.org/michaelgale/pcbflow](https://travis-ci.com/michaelgale/pcbflow.svg?branch=main)
 [![codecov](https://codecov.io/gh/michaelgale/pcbflow/branch/main/graph/badge.svg)](https://codecov.io/gh/michaelgale/pcbflow)
@@ -29,14 +29,13 @@ This implementation is alpha and not fully documented.
 
 ## Requirements
 
-Since the initial release of `pcbflow`, some changes have been made to adapt with newer versions of python and library dependancies.  In particular:
+Since the initial release of `pcbflow`, some changes have been made to adapt with newer versions of python and library dependancies. In particular:
 
+- Python 3.9+
 - the initial versions of `pcbflow` used `shapely` v.1.6+. However `shapely` has changed the way geometries are iterated in v.2.0.1+; therefore `pcbflow` has been changed to support `shapley` versions 2.0.1+
 
->
-> `pcbflow` has been changed to support `shapley` versions 2.0.1+ ONLY.
->  Check your version with `pip list` and verify `shapley` is v.2.0.1+
-> 
+> [!IMPORTANT]
+> `pcbflow` has been changed to support `shapley` versions 2.0.1+ ONLY. Check your version with `pip list` and verify `shapley` is v.2.0.1+. If it's not, you can fix by running `pip install --upgrade shapely`
 
 ## Installation
 
@@ -177,7 +176,7 @@ The `side` argument can be specified as either `top` or `bottom`.  This will mir
 Arbitrary bitmap logos/annotations can be applied to the PCB as follows:
 
 ```python
-brd.add_bitmap((x, y), "logo.png", 
+brd.add_bitmap((x, y), "logo.png",
   scale=None,
   side="top",
   layer=None,
@@ -189,7 +188,7 @@ The bitmap should be a monochrome bitmap image with transparent background.  It 
 
 ## Named Polygons
 
-Arbitary polygon regions can be added to a copper layer with a name corresponding to its net name.  For example, this can be used to apply different voltage "patches" under a part requiring several voltages, or to make a split plane of several voltages or GND references. 
+Arbitary polygon regions can be added to a copper layer with a name corresponding to its net name.  For example, this can be used to apply different voltage "patches" under a part requiring several voltages, or to make a split plane of several voltages or GND references.
 
 ```python
 # add a polygon with a coordinate list
@@ -252,7 +251,7 @@ print(usb_con)
 #   5: VUSB (17.00, 8.12)
 
 # alternatively, we can reference the pad by name to do the same thing
-usb_con.pad("D-").turtle("r 90 f 5 l 90 f 10").wire(width=0.25)     
+usb_con.pad("D-").turtle("r 90 f 5 l 90 f 10").wire(width=0.25)
 ```
 
 ## Saving Asset Files
@@ -269,7 +268,7 @@ usb_con.pad("D-").turtle("r 90 f 5 l 90 f 10").wire(width=0.25)
 Outfiles can be created in the same folder as the script file or in a subfolder under the script (generated automatically). To generate asset files:
 
 ```python
-brd.save(basename, in_subdir=True, 
+brd.save(basename, in_subdir=True,
   gerber=True, pdf=True, bom=True, centroids=True, povray=False)
 ```
 
@@ -360,7 +359,7 @@ if __name__ == "__main__":
 
     # Create a pcbflow Board instance
     brd = Board((55, 30))
-    
+
     # add two inner copper layers (named GP2, GP3)
     brd.add_inner_copper_layer(2)
     # Place 2 mm mounting holes in the corners
@@ -394,14 +393,14 @@ if __name__ == "__main__":
         sp.fanout(["GND"], relative_to="inside")
 
     print(brd.parts_str())
-    
+
     # finish the PCB with an outline and poured copper layers
     brd.add_outline()
     brd.fill_layer("GTL", "GND")
     brd.fill_layer("GBL", "GND")
     brd.fill_layer("GP3", "GND")
 
-    # Save the rendered PCB to asset files 
+    # Save the rendered PCB to asset files
     brd.save("%s" % (os.path.basename(__file__)[:-3]))
 ```
 

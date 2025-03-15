@@ -1,0 +1,2 @@
+[flake8]
+exclude = setup.py, scripts, examples, tests, build, pcbflow/hershey.py
