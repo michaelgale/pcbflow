@@ -19,6 +19,11 @@ KI_LAYER_DICT = {
     "F.Mask": "GTS",
     "F.Cu": "GTL",
     "F.Fab": "GTD",
+    "B.SilkS": "GBO",
+    "B.Paste": "GBP",
+    "B.Mask": "GBS",
+    "B.Cu": "GBL",
+    "B.Fab": "GBD",
 }
 
 FP_LIB_PATH = None
@@ -45,6 +50,7 @@ class KiCadPart(PCBPart):
         super().__init__(dc, val, source, **kwargs)
 
     def _add_obj_to_layer(self, obj, layer):
+        oposite_side = "bottom" if self.side == "top" else "top"
         if layer == "GTO":
             self.board.get_silk_layer(side=self.side).add(obj)
         elif layer == "GTD":
@@ -56,6 +62,17 @@ class KiCadPart(PCBPart):
                 self.board.layers["GBL"].add(obj)
             else:
                 self.board.layers["GTL"].add(obj)
+        elif layer == "GBO":
+            self.board.get_silk_layer(side=oposite_side).add(obj)
+        elif layer == "GBD":
+            self.board.get_docu_layer(side=oposite_side).add(obj)
+        elif layer == "GBP":
+            self.board.get_paste_layer(side=oposite_side).add(obj)
+        elif layer == "GBL":
+            if self.side == "bottom":
+                self.board.layers["GTL"].add(obj)
+            else:
+                self.board.layers["GBL"].add(obj)
 
     def place(self, dc):
         for line in self.lines:
@@ -104,6 +121,12 @@ class KiCadPart(PCBPart):
                 self.smd_pad(p, ignore_paste=no_paste)
             elif "GTP" in pad["layers"]:
                 self.board.get_paste_layer(side=self.side).add(p.poly())
+            if "GBL" in pad["layers"]:
+                no_paste = True if "GBP" not in pad["layers"] else False
+                self.smd_pad(p, ignore_paste=no_paste, back_side=True)
+            elif "GBP" in pad["layers"]:
+                side = "bottom" if self.side == "top" else "top"
+                self.board.get_paste_layer(side=side).add(p.poly())
 
         for pad in self.pin_pads:
             diameter = pad["size"][0]
@@ -146,14 +169,18 @@ class KiCadPart(PCBPart):
 
     def _parse_fp_text(self, items):
         xy = []
-        layers = []
         text = items[0]
+        layer = None
         for e in items:
             if isinstance(e, dict):
                 if "at" in e:
                     xy = float(e["at"][0]), -float(e["at"][1])
                 elif "layer" in e:
-                    layer = self._map_layers(e["layer"])[0]
+                    layer_ = self._map_layers(e["layer"])
+                    if len(layer_) > 0:
+                        layer = layer_[0]
+        if not layer:
+            return
         if text == "reference":
             self.labels.append({"xy": xy, "text": text, "layer": layer})
 
@@ -182,7 +209,7 @@ class KiCadPart(PCBPart):
         center = (0, 0)
         width = 0
         diameter = 0
-        layers = []
+        layer = None
         fill=True
         for e in items:
             if isinstance(e, dict):
@@ -203,7 +230,9 @@ class KiCadPart(PCBPart):
                     if 'none' in e['fill']:
                         fill=False
                 elif "layer" in e:
-                    layer = self._map_layers(e["layer"])[0]
+                    layers = self._map_layers(e["layer"])
+                    if len(layers) > 0:
+                        layer = layers[0]
         self.circles.append(
             {"center": center, "diameter": diameter, "width": width, "layer": layer, "fill" : fill}
         )

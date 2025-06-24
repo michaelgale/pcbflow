@@ -213,8 +213,13 @@ class PCBPart:
             )
         dc.pop()
 
-    def smd_pad(self, dc, ignore_paste=False):
-        for layer in dc.board.get_smd_pad_layers(self.side, ignore_paste=ignore_paste):
+    def smd_pad(self, dc, ignore_paste=False, back_side=False):
+        side = self.side
+        if back_side and side == "top":
+            side = "bottom"
+        elif back_side and side == "bottom":
+            side = "top"
+        for layer in dc.board.get_smd_pad_layers(side, ignore_paste=ignore_paste):
             if layer.is_mask:
                 g = dc.poly().buffer(dc.board.drc.soldermask_margin)
             else:
