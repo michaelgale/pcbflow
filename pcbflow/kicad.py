@@ -170,15 +170,15 @@ class KiCadPart(PCBPart):
     def _parse_fp_text(self, items):
         xy = []
         text = items[0]
-        layer = None
+        layers = []
         for e in items:
             if isinstance(e, dict):
                 if "at" in e:
                     xy = float(e["at"][0]), -float(e["at"][1])
                 elif "layer" in e:
-                    layer_ = self._map_layers(e["layer"])
-                    if len(layer_) > 0:
-                        layer = layer_[0]
+                    layers = self._map_layers(e["layer"])
+                    if len(layers) > 0:
+                        layer = layers[0]
         if not layer:
             return
         if text == "reference":
@@ -209,7 +209,7 @@ class KiCadPart(PCBPart):
         center = (0, 0)
         width = 0
         diameter = 0
-        layer = None
+        layers = []
         fill=True
         for e in items:
             if isinstance(e, dict):
